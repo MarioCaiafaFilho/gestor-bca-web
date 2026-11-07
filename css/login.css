@@ -1,0 +1,445 @@
+    :root {
+      --azul: #07508d;
+      --azul-escuro: #062d58;
+      --azul-forte: #005cb5;
+      --azul-claro: #d9eafb;
+      --texto: #102e56;
+      --cinza: #536782;
+      --branco: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Segoe UI", Arial, sans-serif;
+      color: var(--texto);
+      background: #e8f2fd;
+    }
+
+    .pagina {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      padding: 36px 18px;
+
+      background:
+        radial-gradient(
+          ellipse at center,
+          #f7fbff 0%,
+          #e5f0fc 58%,
+          #cbdff4 100%
+        );
+    }
+
+    /* Elementos decorativos azuis */
+    .pagina::before {
+      content: "";
+      position: absolute;
+      top: -360px;
+      left: -240px;
+      width: 900px;
+      height: 490px;
+      border-radius: 50%;
+      transform: rotate(-22deg);
+
+      background: linear-gradient(
+        135deg,
+        #073664,
+        #075aa0,
+        #73a9d8
+      );
+
+      box-shadow:
+        0 35px 0 16px rgba(90, 153, 207, .20);
+    }
+
+    .pagina::after {
+      content: "";
+      position: absolute;
+      bottom: -350px;
+      right: -270px;
+      width: 980px;
+      height: 540px;
+      border-radius: 50%;
+      transform: rotate(-25deg);
+
+      background: linear-gradient(
+        130deg,
+        #b9d5f0,
+        #5c9bcc 55%,
+        #07508d 85%,
+        #062d58
+      );
+    }
+
+    /* Cartão principal */
+    .login-card {
+      position: relative;
+      z-index: 1;
+
+      width: 100%;
+      max-width: 590px;
+
+      background: rgba(255,255,255,.94);
+      border: 1px solid rgba(255,255,255,.9);
+      border-radius: 30px;
+
+      padding: 50px 48px 55px;
+      text-align: center;
+
+      box-shadow:
+        0 24px 65px rgba(16, 50, 88, .19);
+    }
+
+    .logo {
+      display: block;
+      width: min(100%, 400px);
+      height: 160px;
+      object-fit: contain;
+      margin: 0 auto 8px;
+    }
+
+    .linha {
+      height: 1px;
+      background: linear-gradient(
+        to right,
+        transparent,
+        #c4d4e7,
+        transparent
+      );
+      margin: 5px 0 30px;
+    }
+
+    .titulo {
+      margin: 0;
+      font-size: 38px;
+      font-weight: 750;
+      letter-spacing: -1px;
+      color: var(--azul-escuro);
+    }
+
+    .boas-vindas {
+      margin: 15px 0 12px;
+      font-size: 25px;
+      font-weight: 600;
+      line-height: 1.3;
+    }
+
+    .descricao {
+      margin: 0 auto;
+      max-width: 450px;
+      color: #3d526f;
+      font-size: 17px;
+      line-height: 1.6;
+    }
+
+    .google-area {
+      margin-top: 38px;
+    }
+
+    .separador {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      margin-bottom: 20px;
+    }
+
+    .separador::before,
+    .separador::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: #c7d8e9;
+    }
+
+    .google-icon {
+      width: 55px;
+      height: 55px;
+      border-radius: 15px;
+
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      background: #eef5fd;
+      font-size: 35px;
+      font-weight: 700;
+
+      color: #4285f4;
+    }
+
+    .acesso-info {
+      margin: 0 auto 28px;
+      max-width: 430px;
+
+      font-size: 20px;
+      line-height: 1.45;
+      font-weight: 650;
+      color: var(--azul-escuro);
+    }
+
+    .botao-google {
+      width: 100%;
+      min-height: 64px;
+
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 15px;
+
+      border: 2px solid var(--azul-forte);
+      border-radius: 12px;
+
+      background: white;
+      color: var(--azul-escuro);
+
+      font: inherit;
+      font-size: 20px;
+      font-weight: 650;
+      cursor: pointer;
+
+      transition:
+        background .2s,
+        transform .2s,
+        box-shadow .2s;
+    }
+
+    .botao-google:hover:not(:disabled) {
+      background: #edf6ff;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0,85,160,.12);
+    }
+
+    .botao-google:focus-visible,
+    .botao-sair:focus-visible {
+      outline: 3px solid #72abec;
+      outline-offset: 3px;
+    }
+
+    .botao-google:disabled {
+      opacity: .6;
+      cursor: not-allowed;
+    }
+
+    .google-letra {
+      font-size: 30px;
+      font-weight: 800;
+
+      background: conic-gradient(
+        #4285f4 0deg 85deg,
+        #34a853 85deg 165deg,
+        #fbbc05 165deg 225deg,
+        #ea4335 225deg 300deg,
+        #4285f4 300deg
+      );
+
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .mensagem {
+      margin: 20px auto 0;
+      max-width: 440px;
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--cinza);
+      overflow-wrap: anywhere;
+    }
+
+    .botao-sair {
+      margin-top: 17px;
+      padding: 10px 20px;
+      border: 1px solid #c7d8e9;
+      border-radius: 8px;
+      background: #f8fbff;
+      color: var(--azul-escuro);
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .oculto {
+      display: none !important;
+    }
+
+    @media (max-width: 600px) {
+      .pagina {
+        padding: 22px 14px;
+      }
+
+      .login-card {
+        padding: 30px 22px 38px;
+        border-radius: 23px;
+      }
+
+      .logo {
+        height: 125px;
+      }
+
+      .titulo {
+        font-size: 31px;
+      }
+
+      .boas-vindas {
+        font-size: 21px;
+      }
+
+      .descricao {
+        font-size: 15px;
+      }
+
+      .acesso-info {
+        font-size: 17px;
+      }
+
+      .botao-google {
+        min-height: 59px;
+        font-size: 17px;
+      }
+    }
+    
+/* AJUSTES FINAIS - LOGIN BCA */
+
+.login-card {
+  max-width: 710px;
+  padding: 48px 58px 85px;
+  border-radius: 34px;
+  min-height: 850px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.logo {
+  width: min(100%, 410px);
+  height: auto;
+  object-fit: contain;
+  margin: 0 auto 48px;
+}
+
+.boas-vindas {
+  font-size: 32px;
+  font-weight: 650;
+  margin: 0 0 17px;
+  color: #062d58;
+}
+
+.descricao {
+  max-width: 525px;
+  font-size: 19px;
+  line-height: 1.55;
+  margin: 0 auto;
+}
+
+.google-area {
+  width: 100%;
+  margin-top: 55px;
+}
+
+.separador {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  width: 100%;
+  margin-bottom: 23px;
+}
+
+.separador::before,
+.separador::after {
+  display: none;
+}
+
+.linha-google {
+  flex: 1;
+  height: 1px;
+  background: #c6d7e9;
+}
+
+.google-icon {
+  flex-shrink: 0;
+  width: 90px;
+  height: 90px;
+  border-radius: 23px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #edf5ff;
+}
+
+.google-icon img {
+  width: 58px;
+  height: 58px;
+  object-fit: contain;
+}
+
+.acesso-info {
+  font-size: 24px;
+  max-width: 490px;
+  line-height: 1.4;
+  margin: 0 auto 35px;
+}
+
+.botao-google {
+  min-height: 76px;
+  font-size: 24px;
+  border-radius: 14px;
+}
+
+.botao-google img {
+  object-fit: contain;
+}
+
+@media (max-width: 600px) {
+  .login-card {
+    min-height: auto;
+    padding: 32px 22px 45px;
+    border-radius: 24px;
+  }
+
+  .logo {
+    width: min(100%, 330px);
+    margin-bottom: 36px;
+  }
+
+  .boas-vindas {
+    font-size: 23px;
+  }
+
+  .descricao {
+    font-size: 16px;
+  }
+
+  .google-area {
+    margin-top: 35px;
+  }
+
+  .google-icon {
+    width: 65px;
+    height: 65px;
+  }
+
+  .google-icon img {
+    width: 42px;
+    height: 42px;
+  }
+
+  .acesso-info {
+    font-size: 18px;
+  }
+
+  .botao-google {
+    font-size: 17px;
+    min-height: 62px;
+  }
+}
+
