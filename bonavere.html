@@ -1,0 +1,119 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+  <title>Bonavere | Gestor BCA</title>
+
+  <link rel="stylesheet" href="./css/bonavere.css">
+</head>
+
+<body>
+
+  <header class="cabecalho">
+    <div class="marca">
+      <img src="./logo-bca-recortado.png"
+           alt="Bonavere & Caiafa">
+    </div>
+
+    <nav>
+      <span class="modulo-atual">Bonavere</span>
+    </nav>
+  </header>
+
+  <main class="conteudo">
+
+    <section class="topo">
+      <div>
+        <p class="subtitulo">Gestão de atividades jurídicas</p>
+        <h1>Controle de Processos e Prazos</h1>
+        <p class="apresentacao">
+          Acompanhe os processos, organize os prazos
+          e controle as atividades do escritório.
+        </p>
+      </div>
+
+      <button id="novoPrazo"
+              class="botao-primario"
+              type="button"
+              disabled>
+        + Novo prazo
+      </button>
+    </section>
+
+    <section class="painel">
+      <div class="titulo-secao">
+        <h2>Processos em aberto</h2>
+        <span id="totalAbertos"
+              class="contador">0 registros</span>
+      </div>
+
+      <div class="tabela-rolagem">
+        <table>
+          <thead>
+            <tr>
+              <th>Processo</th>
+              <th>Cliente</th>
+              <th>Publicação</th>
+              <th>Data limite</th>
+              <th>Vencimento</th>
+              <th>Observação</th>
+              <th>Responsável</th>
+              <th>Tipo</th>
+              <th>Situação</th>
+            </tr>
+          </thead>
+
+          <tbody id="processosAbertos">
+            <tr>
+              <td colspan="9" class="vazio">
+                Nenhum processo carregado.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="painel">
+      <div class="titulo-secao">
+        <h2>Processos fechados</h2>
+        <span id="totalFechados"
+              class="contador">0 registros</span>
+      </div>
+
+      <div class="tabela-rolagem">
+        <table>
+          <thead>
+            <tr>
+              <th>Processo</th>
+              <th>Cliente</th>
+              <th>Publicação</th>
+              <th>Data limite</th>
+              <th>Vencimento</th>
+              <th>Observação</th>
+              <th>Responsável</th>
+              <th>Tipo</th>
+              <th>Situação</th>
+            </tr>
+          </thead>
+
+          <tbody id="processosFechados">
+            <tr>
+              <td colspan="9" class="vazio">
+                Nenhum processo carregado.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="./js/bonavere.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,102 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+  <title>Gestor BCA | Acesso</title>
+
+  <link rel="stylesheet" href="./css/login.css">
+</head>
+
+<body>
+
+  <main class="pagina">
+
+    <section class="login-card">
+
+      <img
+  class="logo"
+  src="./logo-bca-recortado.png"
+  alt="Bonavere & Caiafa Assessoria Empresarial"
+>
+
+     <h1 class="boas-vindas">
+  Bem-vindo ao Gestor BCA
+</h1>
+
+      <p class="descricao">
+        Sistema interno de gestão da
+        Bonavere &amp; Caiafa Assessoria Empresarial.
+      </p>
+
+      <div class="google-area">
+
+        
+<div class="separador">
+  <span class="linha-google"></span>
+
+  <div class="google-icon" aria-hidden="true">
+    <img
+      src="./google-logo.svg"
+      alt=""
+      width="58"
+      height="58"
+    >
+  </div>
+
+  <span class="linha-google"></span>
+</div>
+
+
+        <p class="acesso-info">
+          O acesso é realizado exclusivamente
+          pela sua conta do Google.
+        </p>
+
+        <button
+          id="botaoEntrar"
+          class="botao-google"
+          type="button"
+          disabled
+        >
+         <img
+  src="./google-logo.svg"
+  alt=""
+  aria-hidden="true"
+  width="28"
+  height="28"
+>
+          Continuar com Google
+        </button>
+
+        <p
+          id="mensagem"
+          class="mensagem"
+          role="status"
+          aria-live="polite"
+        >
+          Preparando autenticação...
+        </p>
+
+        <button
+          id="botaoSair"
+          class="botao-sair oculto"
+          type="button"
+        >
+          Sair da conta
+        </button>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="./js/login.js" defer></script>
+
+</body>
+</html>
