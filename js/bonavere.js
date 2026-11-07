@@ -234,11 +234,38 @@ function criarLinha(processo) {
     processo.bonavere_tipos?.nome || "—"
   );
 
-  adicionarCelula(
-    linha,
-    situacoes[processo.status] ||
-      processo.status
+ const celulaSituacao = document.createElement("td");
+
+if (podeEditar) {
+  const seletor = document.createElement("select");
+
+  seletor.className = "seletor-situacao";
+  seletor.setAttribute(
+    "aria-label",
+    "Situação do processo " +
+      (processo.numero_processo || "")
   );
+
+  for (const [valor, descricao] of Object.entries(situacoes)) {
+    const opcao = document.createElement("option");
+    opcao.value = valor;
+    opcao.textContent = descricao;
+    seletor.appendChild(opcao);
+  }
+
+  seletor.value = processo.status;
+
+  seletor.addEventListener("change", async () => {
+    await alterarSituacao(processo, seletor);
+  });
+
+  celulaSituacao.appendChild(seletor);
+} else {
+  celulaSituacao.textContent =
+    situacoes[processo.status] || processo.status;
+}
+
+linha.appendChild(celulaSituacao);
 
   return linha;
 }
@@ -338,7 +365,72 @@ function mostrarProcessos(processos) {
   totalFechados.textContent =
     `${fechados.length} registro(s)`;
 }
+async function alterarSituacao(processo, seletor) {
+  if (!podeEditar || !usuarioAtual) {
+    seletor.value = processo.status;
+    return;
+  }
 
+  const novaSituacao = seletor.value;
+
+  if (novaSituacao === processo.status) {
+    return;
+  }
+
+  if (
+    novaSituacao === "concluida" ||
+    novaSituacao === "nada_a_fazer"
+  ) {
+    const confirmar = window.confirm(
+      "Deseja encerrar este prazo como " +
+      `"${situacoes[novaSituacao]}"?\n\n` +
+      "O registro será transferido para " +
+      "Processos fechados."
+    );
+
+    if (!confirmar) {
+      seletor.value = processo.status;
+      return;
+    }
+  }
+
+  seletor.disabled = true;
+
+  try {
+    const { data, error } = await clienteSupabase
+      .from("bonavere_processos")
+      .update({
+        status: novaSituacao
+      })
+      .eq("id", processo.id)
+      .select("id");
+
+    if (error) throw error;
+
+    if (!data || data.length !== 1) {
+      throw new Error(
+        "A alteração não foi confirmada pelo banco."
+      );
+    }
+
+    await carregarProcessos();
+
+  } catch (erro) {
+    console.error(
+      "Erro ao alterar situação:",
+      erro
+    );
+
+    seletor.value = processo.status;
+
+    alert(
+      "Não foi possível alterar a situação. " +
+      "Verifique o Console do navegador."
+    );
+  } finally {
+    seletor.disabled = false;
+  }
+}
 // ==========================================
 // CONSULTAR PROCESSOS
 // ==========================================
@@ -670,6 +762,7 @@ async function iniciarBonavere() {
 
     try {
       await verificarPermissao();
+      await carregarProcessos();
     } catch (erroPermissao) {
       // Falha na verificacao nao libera edicao.
       console.error(

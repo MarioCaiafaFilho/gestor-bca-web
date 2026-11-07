@@ -307,3 +307,26 @@ td.vazio {
     flex-wrap: wrap;
   }
 }
+/* Edicao da situacao na planilha */
+
+.seletor-situacao {
+  width: 145px;
+  max-width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #cbd9e8;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #08345f;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.seletor-situacao:focus {
+  outline: 2px solid #1765a3;
+  outline-offset: 2px;
+}
+
+.seletor-situacao:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
