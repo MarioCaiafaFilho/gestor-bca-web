@@ -183,3 +183,127 @@ td.vazio {
     font-size: 24px;
   }
 }
+
+/* ==========================================
+   BONAVERE - FORMULARIO DE NOVO PRAZO
+   ========================================== */
+
+.modal-prazo {
+  width: min(94%, 760px);
+  max-height: 90vh;
+  padding: 30px;
+  border: 1px solid #dce5ef;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 15px 50px rgba(8, 52, 95, 0.20);
+  color: #25364a;
+}
+
+.modal-prazo::backdrop {
+  background: rgba(8, 28, 55, 0.55);
+  backdrop-filter: blur(3px);
+}
+
+.modal-prazo h2 {
+  margin: 0 0 25px;
+  color: #08345f;
+  font-size: 23px;
+}
+
+.campos-formulario {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.campos-formulario label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #344b65;
+}
+
+.campos-formulario input,
+.campos-formulario select,
+.campos-formulario textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid #ccd9e7;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #25364a;
+  font: inherit;
+  font-weight: normal;
+  outline: none;
+}
+
+.campos-formulario input:focus,
+.campos-formulario select:focus,
+.campos-formulario textarea:focus {
+  border-color: #1765a3;
+  box-shadow: 0 0 0 3px rgba(23, 101, 163, 0.12);
+}
+
+.campo-largo {
+  grid-column: 1 / -1;
+}
+
+.campos-formulario textarea {
+  resize: vertical;
+  min-height: 85px;
+}
+
+.acoes-formulario {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.acoes-formulario button {
+  padding: 12px 22px;
+  border-radius: 9px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+#cancelarPrazo {
+  background: #ffffff;
+  color: #344b65;
+  border: 1px solid #ccd9e7;
+}
+
+#salvarPrazo {
+  background: #1765a3;
+  color: #ffffff;
+  border: 1px solid #1765a3;
+}
+
+#salvarPrazo:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Adaptacao para telas menores */
+
+@media (max-width: 600px) {
+  .modal-prazo {
+    padding: 22px 16px;
+  }
+
+  .campos-formulario {
+    grid-template-columns: 1fr;
+  }
+
+  .campo-largo {
+    grid-column: auto;
+  }
+
+  .acoes-formulario {
+    flex-wrap: wrap;
+  }
+}

@@ -115,6 +115,88 @@
     </section>
 
   </main>
+  
+<dialog id="modalNovoPrazo" class="modal-prazo">
+  <form id="formNovoPrazo">
+
+    <h2>Cadastrar novo prazo</h2>
+
+    <div class="campos-formulario">
+
+      <label>
+        Processo
+        <input type="text" name="numero_processo">
+      </label>
+
+      <label>
+        Tribunal
+        <input type="text" name="origem">
+      </label>
+
+      <label>
+        Cliente
+        <input type="text" name="cliente">
+      </label>
+
+      <label>
+        Publicação
+        <input type="date" name="publicacao">
+      </label>
+
+      <label>
+        Data limite
+        <input type="date" name="data_limite">
+      </label>
+
+      <label>
+        Vencimento
+        <input type="date" name="vencimento">
+      </label>
+
+      <label>
+        Responsável
+        <select name="responsavel_id">
+          <option value="">Selecione</option>
+        </select>
+      </label>
+
+      <label>
+        Tipo
+        <select name="tipo_id">
+          <option value="">Selecione</option>
+        </select>
+      </label>
+
+      <label>
+        Situação
+        <select name="status">
+          <option value="aberta">Aberta</option>
+          <option value="em_processo">Em processo</option>
+          <option value="concluida">Concluída</option>
+          <option value="nada_a_fazer">Nada a fazer</option>
+        </select>
+      </label>
+
+      <label class="campo-largo">
+        Observação
+        <textarea name="observacao" rows="3"></textarea>
+      </label>
+
+    </div>
+
+    <div class="acoes-formulario">
+      <button type="button" id="cancelarPrazo">
+        Cancelar
+      </button>
+
+      <button type="submit" id="salvarPrazo" disabled>
+        Salvar prazo
+      </button>
+    </div>
+
+  </form>
+</dialog>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="./js/bonavere.js" defer></script>
 </body>
