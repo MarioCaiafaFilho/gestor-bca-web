@@ -303,7 +303,7 @@ async function iniciarBonavere() {
         status,
         criado_em,
         atualizado_em,
-        bonavere_responsaveis(nome),
+bonavere_responsaveis!bonavere_processos_responsavel_id_fkey(nome),
         bonavere_tipos(nome)
       `)
       .order("criado_em", { ascending: true })
