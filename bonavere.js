@@ -1,18 +1,47 @@
 
 "use strict";
 
+// ==========================================
 // GESTOR BCA - MODULO BONAVERE
-// Leitura dos processos e organizacao da planilha.
+// ==========================================
 
-// Use a mesma chave publica do js/login.js.
-// Nunca utilize uma chave secret ou service_role.
-const SUPABASE_URL = "https://pdvipfzbtpsuenpumktb.supabase.co";
-const SUPABASE_PUBLIC_KEY = "sb_publishable_IOUb057J98PySmHjKai1Eg_mR4rSIjB";
+// Utilize a mesma chave publica do login.js.
+const SUPABASE_URL =
+  "https://pdvipfzbtpsuenpumktb.supabase.co";
 
-const tabelaAbertos = document.getElementById("processosAbertos");
-const tabelaFechados = document.getElementById("processosFechados");
-const totalAbertos = document.getElementById("totalAbertos");
-const totalFechados = document.getElementById("totalFechados");
+const SUPABASE_PUBLIC_KEY =
+  "sb_publishable_IOUb057J98PySmHjKai1Eg_mR4rSIjB";
+
+let clienteSupabase = null;
+let usuarioAtual = null;
+let podeEditar = false;
+
+const tabelaAbertos =
+  document.getElementById("processosAbertos");
+
+const tabelaFechados =
+  document.getElementById("processosFechados");
+
+const totalAbertos =
+  document.getElementById("totalAbertos");
+
+const totalFechados =
+  document.getElementById("totalFechados");
+
+const botaoNovo =
+  document.getElementById("novoPrazo");
+
+const modal =
+  document.getElementById("modalNovoPrazo");
+
+const formulario =
+  document.getElementById("formNovoPrazo");
+
+const botaoCancelar =
+  document.getElementById("cancelarPrazo");
+
+const botaoSalvar =
+  document.getElementById("salvarPrazo");
 
 const situacoes = {
   aberta: "Aberta",
@@ -20,6 +49,10 @@ const situacoes = {
   concluida: "Concluída",
   nada_a_fazer: "Nada a fazer"
 };
+
+// ==========================================
+// MENSAGENS E DATAS
+// ==========================================
 
 function mensagemTabela(tabela, mensagem) {
   tabela.replaceChildren();
@@ -39,6 +72,7 @@ function formatarData(data) {
   if (!data) return "—";
 
   const partes = data.split("-");
+
   if (partes.length !== 3) return data;
 
   return `${partes[2]}/${partes[1]}/${partes[0]}`;
@@ -50,8 +84,11 @@ function dataEmDias(data) {
   const partes = data.split("-").map(Number);
 
   return Math.floor(
-    Date.UTC(partes[0], partes[1] - 1, partes[2]) /
-    86400000
+    Date.UTC(
+      partes[0],
+      partes[1] - 1,
+      partes[2]
+    ) / 86400000
   );
 }
 
@@ -71,6 +108,10 @@ function diasAteVencimento(data) {
   return dataEmDias(data) - hojeEmDias;
 }
 
+// ==========================================
+// CORES DOS PRAZOS
+// ==========================================
+
 function aplicarCorVencimento(celula, processo) {
   if (
     !processo.vencimento ||
@@ -80,22 +121,21 @@ function aplicarCorVencimento(celula, processo) {
     return;
   }
 
-  const dias = diasAteVencimento(processo.vencimento);
+  const dias =
+    diasAteVencimento(processo.vencimento);
 
   if (dias === null || dias > 7) return;
 
-  // Comeca com vermelho suave aos 7 dias.
-  // Chega ao vermelho intenso no vencimento.
-  const intensidade = dias <= 0
-    ? 1
-    : (7 - dias) / 7;
+  const intensidade =
+    dias <= 0 ? 1 : (7 - dias) / 7;
 
   const inicio = [255, 242, 239];
   const fim = [220, 53, 53];
 
   const cor = inicio.map((valor, indice) =>
     Math.round(
-      valor + (fim[indice] - valor) * intensidade
+      valor +
+      (fim[indice] - valor) * intensidade
     )
   );
 
@@ -103,7 +143,9 @@ function aplicarCorVencimento(celula, processo) {
     `rgb(${cor.join(",")})`;
 
   celula.style.color =
-    intensidade >= 0.65 ? "#ffffff" : "#752a2a";
+    intensidade >= 0.65
+      ? "#ffffff"
+      : "#752a2a";
 
   celula.style.fontWeight = "bold";
 
@@ -112,14 +154,22 @@ function aplicarCorVencimento(celula, processo) {
   } else if (dias === 0) {
     celula.title = "Vence hoje";
   } else {
-    celula.title = `Faltam ${dias} dias corridos`;
+    celula.title =
+      `Faltam ${dias} dias corridos`;
   }
 }
 
+// ==========================================
+// LINHAS DAS TABELAS
+// ==========================================
+
 function adicionarCelula(linha, valor) {
   const celula = document.createElement("td");
+
   celula.textContent = valor ?? "—";
+
   linha.appendChild(celula);
+
   return celula;
 }
 
@@ -134,20 +184,45 @@ function criarLinha(processo) {
     linha.classList.add("concluida");
   }
 
-  adicionarCelula(linha, processo.numero_processo || "—");
-  adicionarCelula(linha, processo.tribunal || "—");
-  adicionarCelula(linha, processo.cliente || "—");
-  adicionarCelula(linha, formatarData(processo.publicacao));
-  adicionarCelula(linha, formatarData(processo.data_limite));
+  adicionarCelula(
+    linha,
+    processo.numero_processo || "—"
+  );
+
+  adicionarCelula(
+    linha,
+    processo.origem || "—"
+  );
+
+  adicionarCelula(
+    linha,
+    processo.cliente || "—"
+  );
+
+  adicionarCelula(
+    linha,
+    formatarData(processo.publicacao)
+  );
+
+  adicionarCelula(
+    linha,
+    formatarData(processo.data_limite)
+  );
 
   const celulaVencimento = adicionarCelula(
     linha,
     formatarData(processo.vencimento)
   );
 
-  aplicarCorVencimento(celulaVencimento, processo);
+  aplicarCorVencimento(
+    celulaVencimento,
+    processo
+  );
 
-  adicionarCelula(linha, processo.observacao || "—");
+  adicionarCelula(
+    linha,
+    processo.observacao || "—"
+  );
 
   adicionarCelula(
     linha,
@@ -159,36 +234,76 @@ function criarLinha(processo) {
     processo.bonavere_tipos?.nome || "—"
   );
 
-  adicionarCelula(
-    linha,
-    situacoes[processo.status] || processo.status
+ const celulaSituacao = document.createElement("td");
+
+if (podeEditar) {
+  const seletor = document.createElement("select");
+
+  seletor.className = "seletor-situacao";
+  seletor.setAttribute(
+    "aria-label",
+    "Situação do processo " +
+      (processo.numero_processo || "")
   );
+
+  for (const [valor, descricao] of Object.entries(situacoes)) {
+    const opcao = document.createElement("option");
+    opcao.value = valor;
+    opcao.textContent = descricao;
+    seletor.appendChild(opcao);
+  }
+
+  seletor.value = processo.status;
+
+  seletor.addEventListener("change", async () => {
+    await alterarSituacao(processo, seletor);
+  });
+
+  celulaSituacao.appendChild(seletor);
+} else {
+  celulaSituacao.textContent =
+    situacoes[processo.status] || processo.status;
+}
+
+linha.appendChild(celulaSituacao);
 
   return linha;
 }
 
-function ordenarAbertos(a, b) {
-  // Sem data limite sempre primeiro.
-  if (!a.data_limite && b.data_limite) return -1;
-  if (a.data_limite && !b.data_limite) return 1;
+// ==========================================
+// ORGANIZACAO DOS PROCESSOS
+// ==========================================
 
-  // Datas mais proximas primeiro.
+function ordenarAbertos(a, b) {
+  // Sem data limite: primeiro.
+  if (!a.data_limite && b.data_limite) {
+    return -1;
+  }
+
+  if (a.data_limite && !b.data_limite) {
+    return 1;
+  }
+
+  // Data limite mais proxima: primeiro.
   if (a.data_limite && b.data_limite) {
-    const diferenca = a.data_limite.localeCompare(
-      b.data_limite
-    );
+    const diferenca =
+      a.data_limite.localeCompare(b.data_limite);
 
     if (diferenca !== 0) return diferenca;
   }
 
   // Desempate pela data de vencimento.
-  if (!a.vencimento && b.vencimento) return 1;
-  if (a.vencimento && !b.vencimento) return -1;
+  if (!a.vencimento && b.vencimento) {
+    return 1;
+  }
+
+  if (a.vencimento && !b.vencimento) {
+    return -1;
+  }
 
   if (a.vencimento && b.vencimento) {
-    const diferenca = a.vencimento.localeCompare(
-      b.vencimento
-    );
+    const diferenca =
+      a.vencimento.localeCompare(b.vencimento);
 
     if (diferenca !== 0) return diferenca;
   }
@@ -198,30 +313,36 @@ function ordenarAbertos(a, b) {
 
 function mostrarProcessos(processos) {
   const abertos = processos
-    .filter(p =>
-      p.status === "aberta" ||
-      p.status === "em_processo"
+    .filter(processo =>
+      processo.status === "aberta" ||
+      processo.status === "em_processo"
     )
     .sort(ordenarAbertos);
 
   const fechados = processos
-    .filter(p =>
-      p.status === "concluida" ||
-      p.status === "nada_a_fazer"
+    .filter(processo =>
+      processo.status === "concluida" ||
+      processo.status === "nada_a_fazer"
     )
     .sort((a, b) =>
-      b.atualizado_em.localeCompare(a.atualizado_em)
+      b.atualizado_em.localeCompare(
+        a.atualizado_em
+      )
     );
 
   tabelaAbertos.replaceChildren();
   tabelaFechados.replaceChildren();
 
   for (const processo of abertos) {
-    tabelaAbertos.appendChild(criarLinha(processo));
+    tabelaAbertos.appendChild(
+      criarLinha(processo)
+    );
   }
 
   for (const processo of fechados) {
-    tabelaFechados.appendChild(criarLinha(processo));
+    tabelaFechados.appendChild(
+      criarLinha(processo)
+    );
   }
 
   if (abertos.length === 0) {
@@ -244,6 +365,349 @@ function mostrarProcessos(processos) {
   totalFechados.textContent =
     `${fechados.length} registro(s)`;
 }
+async function alterarSituacao(processo, seletor) {
+  if (!podeEditar || !usuarioAtual) {
+    seletor.value = processo.status;
+    return;
+  }
+
+  const novaSituacao = seletor.value;
+
+  if (novaSituacao === processo.status) {
+    return;
+  }
+
+  if (
+    novaSituacao === "concluida" ||
+    novaSituacao === "nada_a_fazer"
+  ) {
+    const confirmar = window.confirm(
+      "Deseja encerrar este prazo como " +
+      `"${situacoes[novaSituacao]}"?\n\n` +
+      "O registro será transferido para " +
+      "Processos fechados."
+    );
+
+    if (!confirmar) {
+      seletor.value = processo.status;
+      return;
+    }
+  }
+
+  seletor.disabled = true;
+
+  try {
+    const { data, error } = await clienteSupabase
+      .from("bonavere_processos")
+      .update({
+        status: novaSituacao
+      })
+      .eq("id", processo.id)
+      .select("id");
+
+    if (error) throw error;
+
+    if (!data || data.length !== 1) {
+      throw new Error(
+        "A alteração não foi confirmada pelo banco."
+      );
+    }
+
+    await carregarProcessos();
+
+  } catch (erro) {
+    console.error(
+      "Erro ao alterar situação:",
+      erro
+    );
+
+    seletor.value = processo.status;
+
+    alert(
+      "Não foi possível alterar a situação. " +
+      "Verifique o Console do navegador."
+    );
+  } finally {
+    seletor.disabled = false;
+  }
+}
+// ==========================================
+// CONSULTAR PROCESSOS
+// ==========================================
+
+async function carregarProcessos() {
+  const { data, error } = await clienteSupabase
+    .from("bonavere_processos")
+    .select(`
+      id,
+      numero_processo,
+      origem,
+      cliente,
+      publicacao,
+      data_limite,
+      vencimento,
+      observacao,
+      status,
+      criado_em,
+      atualizado_em,
+      bonavere_responsaveis!bonavere_processos_responsavel_id_fkey(nome),
+      bonavere_tipos(nome)
+    `)
+    .order("criado_em", {
+      ascending: true
+    })
+    .limit(1000);
+
+  if (error) throw error;
+
+  mostrarProcessos(data || []);
+}
+
+// ==========================================
+// VERIFICAR PERMISSAO DE EDICAO
+// ==========================================
+
+async function verificarPermissao() {
+  podeEditar = false;
+  botaoNovo.disabled = true;
+
+  const { data: perfil, error: erroPerfil } =
+    await clienteSupabase
+      .from("perfis")
+      .select("id, master, autorizado")
+      .eq("id", usuarioAtual.id)
+      .maybeSingle();
+
+  if (erroPerfil) throw erroPerfil;
+
+  if (!perfil || !perfil.autorizado) {
+    return;
+  }
+
+  if (perfil.master) {
+    podeEditar = true;
+    botaoNovo.disabled = false;
+    return;
+  }
+
+  const { data: permissao, error: erroPermissao } =
+    await clienteSupabase
+      .from("permissoes")
+      .select("nivel")
+      .eq("user_id", usuarioAtual.id)
+      .eq("modulo", "bonavere")
+      .maybeSingle();
+
+  if (erroPermissao) throw erroPermissao;
+
+  // A autorizacao efetiva continua sendo
+  // validada pelo RLS no banco de dados.
+  if (permissao?.nivel === "editar") {
+    podeEditar = true;
+    botaoNovo.disabled = false;
+  }
+}
+
+// ==========================================
+// CARREGAR RESPONSAVEIS E TIPOS
+// ==========================================
+
+function preencherSelecao(campo, registros) {
+  campo.replaceChildren();
+
+  const opcaoInicial =
+    document.createElement("option");
+
+  opcaoInicial.value = "";
+  opcaoInicial.textContent = "Selecione";
+
+  campo.appendChild(opcaoInicial);
+
+  for (const registro of registros) {
+    const opcao =
+      document.createElement("option");
+
+    opcao.value = registro.id;
+    opcao.textContent = registro.nome;
+
+    campo.appendChild(opcao);
+  }
+}
+
+async function carregarOpcoesFormulario() {
+  const [
+    resultadoResponsaveis,
+    resultadoTipos
+  ] = await Promise.all([
+    clienteSupabase
+      .from("bonavere_responsaveis")
+      .select("id, nome")
+      .eq("ativo", true)
+      .order("nome"),
+
+    clienteSupabase
+      .from("bonavere_tipos")
+      .select("id, nome")
+      .eq("ativo", true)
+      .order("nome")
+  ]);
+
+  if (resultadoResponsaveis.error) {
+    throw resultadoResponsaveis.error;
+  }
+
+  if (resultadoTipos.error) {
+    throw resultadoTipos.error;
+  }
+
+  preencherSelecao(
+    formulario.elements.namedItem(
+      "responsavel_id"
+    ),
+    resultadoResponsaveis.data || []
+  );
+
+  preencherSelecao(
+    formulario.elements.namedItem("tipo_id"),
+    resultadoTipos.data || []
+  );
+}
+
+// ==========================================
+// ABRIR E FECHAR FORMULARIO
+// ==========================================
+
+botaoNovo.addEventListener("click", async () => {
+  if (!podeEditar) return;
+
+  botaoNovo.disabled = true;
+
+  try {
+    formulario.reset();
+
+    await carregarOpcoesFormulario();
+
+    botaoSalvar.disabled = false;
+
+    modal.showModal();
+  } catch (erro) {
+    console.error(
+      "Erro ao preparar formulário:",
+      erro
+    );
+
+    alert(
+      "Não foi possível carregar o formulário. " +
+      "Verifique o Console do navegador."
+    );
+  } finally {
+    botaoNovo.disabled = !podeEditar;
+  }
+});
+
+botaoCancelar.addEventListener("click", () => {
+  modal.close();
+});
+
+// ==========================================
+// CADASTRAR NOVO PRAZO
+// ==========================================
+
+function textoOuNulo(valor) {
+  const texto = String(valor || "").trim();
+
+  return texto === "" ? null : texto;
+}
+
+formulario.addEventListener(
+  "submit",
+  async (evento) => {
+    evento.preventDefault();
+
+    if (!podeEditar || !usuarioAtual) {
+      alert("Você não possui permissão de edição.");
+      return;
+    }
+
+    const dados =
+      new FormData(formulario);
+
+    const novoProcesso = {
+      numero_processo: textoOuNulo(
+        dados.get("numero_processo")
+      ),
+
+      origem: textoOuNulo(
+        dados.get("origem")
+      ),
+
+      cliente: textoOuNulo(
+        dados.get("cliente")
+      ),
+
+      publicacao: textoOuNulo(
+        dados.get("publicacao")
+      ),
+
+      data_limite: textoOuNulo(
+        dados.get("data_limite")
+      ),
+
+      vencimento: textoOuNulo(
+        dados.get("vencimento")
+      ),
+
+      observacao: textoOuNulo(
+        dados.get("observacao")
+      ),
+
+      responsavel_id: textoOuNulo(
+        dados.get("responsavel_id")
+      ),
+
+      tipo_id: textoOuNulo(
+        dados.get("tipo_id")
+      ),
+
+      status:
+        dados.get("status") || "aberta"
+    };
+
+    botaoSalvar.disabled = true;
+    botaoSalvar.textContent = "Salvando...";
+
+    try {
+      const { error } = await clienteSupabase
+        .from("bonavere_processos")
+        .insert(novoProcesso);
+
+      if (error) throw error;
+
+      modal.close();
+
+      await carregarProcessos();
+
+      alert("Prazo cadastrado com sucesso!");
+    } catch (erro) {
+      console.error(
+        "Erro ao salvar prazo:",
+        erro
+      );
+
+      alert(
+        "Não foi possível concluir a operação. " +
+        "Verifique a mensagem no Console."
+      );
+    } finally {
+      botaoSalvar.disabled = false;
+      botaoSalvar.textContent = "Salvar prazo";
+    }
+  }
+);
+
+// ==========================================
+// INICIAR MODULO BONAVERE
+// ==========================================
 
 async function iniciarBonavere() {
   if (
@@ -252,7 +716,7 @@ async function iniciarBonavere() {
   ) {
     mensagemTabela(
       tabelaAbertos,
-      "Configure a chave pública no arquivo bonavere.js."
+      "Configure a chave pública no bonavere.js."
     );
     return;
   }
@@ -260,15 +724,16 @@ async function iniciarBonavere() {
   if (!window.supabase) {
     mensagemTabela(
       tabelaAbertos,
-      "Não foi possível carregar a biblioteca Supabase."
+      "Não foi possível carregar o Supabase."
     );
     return;
   }
 
-  const clienteSupabase = window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_PUBLIC_KEY
-  );
+  clienteSupabase =
+    window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_PUBLIC_KEY
+    );
 
   try {
     mensagemTabela(
@@ -276,52 +741,48 @@ async function iniciarBonavere() {
       "Verificando autenticação..."
     );
 
-    const { data: autenticacao, error: erroAuth } =
-      await clienteSupabase.auth.getUser();
+    const {
+      data: autenticacao,
+      error: erroAuth
+    } = await clienteSupabase.auth.getUser();
 
     if (erroAuth || !autenticacao.user) {
       window.location.replace("./index.html");
       return;
     }
 
+    usuarioAtual = autenticacao.user;
+
     mensagemTabela(
       tabelaAbertos,
       "Carregando processos..."
     );
 
-    // Nesta primeira versão, carregamos até 1000 registros.
-    // Antes do uso com grande volume, teremos paginação.
-    const { data, error } = await clienteSupabase
-      .from("bonavere_processos")
-      .select(`
-        id,
-        numero_processo,
-        tribunal,
-        cliente,
-        publicacao,
-        data_limite,
-        vencimento,
-        observacao,
-        status,
-        criado_em,
-        atualizado_em,
-bonavere_responsaveis!bonavere_processos_responsavel_id_fkey(nome),
-        bonavere_tipos(nome)
-      `)
-      .order("criado_em", { ascending: true })
-      .limit(1000);
+    await carregarProcessos();
 
-    if (error) throw error;
+    try {
+      await verificarPermissao();
+      await carregarProcessos();
+    } catch (erroPermissao) {
+      // Falha na verificacao nao libera edicao.
+      console.error(
+        "Erro ao verificar permissão:",
+        erroPermissao
+      );
 
-    mostrarProcessos(data || []);
+      podeEditar = false;
+      botaoNovo.disabled = true;
+    }
 
   } catch (erro) {
-    console.error("Erro ao carregar Bonavere:", erro);
+    console.error(
+      "Erro ao carregar Bonavere:",
+      erro
+    );
 
     mensagemTabela(
       tabelaAbertos,
-      "Não foi possível carregar os processos. " +
-      "Verifique o Console do navegador."
+      "Não foi possível carregar os processos."
     );
 
     mensagemTabela(

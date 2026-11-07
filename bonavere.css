@@ -1,0 +1,332 @@
+
+:root {
+  --azul-escuro: #08345f;
+  --azul-principal: #1765a3;
+  --azul-claro: #e3f1ff;
+  --verde-claro: #dff3e4;
+  --fundo: #f1f6fc;
+  --borda: #dce5ef;
+  --texto: #25364a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  color: var(--texto);
+  background: var(--fundo);
+}
+
+.cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 14px 35px;
+  background: white;
+  border-bottom: 1px solid var(--borda);
+}
+
+.marca {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  color: var(--azul-escuro);
+  font-weight: bold;
+}
+
+.marca img {
+  width: 110px;
+  max-height: 65px;
+  object-fit: contain;
+}
+
+.modulo-atual {
+  color: var(--azul-principal);
+  font-weight: bold;
+}
+
+.conteudo {
+  width: min(96%, 1600px);
+  margin: 35px auto;
+}
+
+.topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 30px;
+}
+
+.subtitulo {
+  color: var(--azul-principal);
+  font-size: 13px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+h1 {
+  margin: 8px 0;
+  color: var(--azul-escuro);
+  font-size: 30px;
+}
+
+.apresentacao {
+  color: #66788e;
+  line-height: 1.5;
+}
+
+.botao-primario {
+  padding: 15px 24px;
+  border: none;
+  border-radius: 10px;
+  background: var(--azul-principal);
+  color: white;
+  font-weight: bold;
+  font-size: 15px;
+  white-space: nowrap;
+}
+
+.botao-primario:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.painel {
+  background: white;
+  border: 1px solid var(--borda);
+  border-radius: 15px;
+  margin-bottom: 28px;
+  overflow: hidden;
+  box-shadow: 0 4px 18px #173b6410;
+}
+
+.titulo-secao {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  padding: 20px 24px;
+}
+
+h2 {
+  margin: 0;
+  color: var(--azul-escuro);
+  font-size: 20px;
+}
+
+.contador {
+  font-size: 13px;
+  color: #60768d;
+  background: #edf3fa;
+  border-radius: 20px;
+  padding: 7px 12px;
+}
+
+.tabela-rolagem {
+  overflow-x: auto;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 1250px;
+}
+
+th, td {
+  padding: 15px 12px;
+  border-bottom: 1px solid var(--borda);
+  text-align: left;
+  font-size: 13px;
+}
+
+th {
+  background: #edf4fb;
+  color: var(--azul-escuro);
+  font-weight: bold;
+}
+
+tr.em-processo {
+  background: var(--azul-claro);
+}
+
+tr.concluida {
+  background: var(--verde-claro);
+}
+
+td.vazio {
+  text-align: center;
+  padding: 36px;
+  color: #8291a3;
+}
+
+@media (max-width: 700px) {
+  .cabecalho {
+    padding: 12px 18px;
+  }
+
+  .conteudo {
+    margin-top: 20px;
+  }
+
+  .topo {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  h1 {
+    font-size: 24px;
+  }
+}
+
+/* ==========================================
+   BONAVERE - FORMULARIO DE NOVO PRAZO
+   ========================================== */
+
+.modal-prazo {
+  width: min(94%, 760px);
+  max-height: 90vh;
+  padding: 30px;
+  border: 1px solid #dce5ef;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 15px 50px rgba(8, 52, 95, 0.20);
+  color: #25364a;
+}
+
+.modal-prazo::backdrop {
+  background: rgba(8, 28, 55, 0.55);
+  backdrop-filter: blur(3px);
+}
+
+.modal-prazo h2 {
+  margin: 0 0 25px;
+  color: #08345f;
+  font-size: 23px;
+}
+
+.campos-formulario {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.campos-formulario label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #344b65;
+}
+
+.campos-formulario input,
+.campos-formulario select,
+.campos-formulario textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid #ccd9e7;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #25364a;
+  font: inherit;
+  font-weight: normal;
+  outline: none;
+}
+
+.campos-formulario input:focus,
+.campos-formulario select:focus,
+.campos-formulario textarea:focus {
+  border-color: #1765a3;
+  box-shadow: 0 0 0 3px rgba(23, 101, 163, 0.12);
+}
+
+.campo-largo {
+  grid-column: 1 / -1;
+}
+
+.campos-formulario textarea {
+  resize: vertical;
+  min-height: 85px;
+}
+
+.acoes-formulario {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.acoes-formulario button {
+  padding: 12px 22px;
+  border-radius: 9px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+#cancelarPrazo {
+  background: #ffffff;
+  color: #344b65;
+  border: 1px solid #ccd9e7;
+}
+
+#salvarPrazo {
+  background: #1765a3;
+  color: #ffffff;
+  border: 1px solid #1765a3;
+}
+
+#salvarPrazo:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Adaptacao para telas menores */
+
+@media (max-width: 600px) {
+  .modal-prazo {
+    padding: 22px 16px;
+  }
+
+  .campos-formulario {
+    grid-template-columns: 1fr;
+  }
+
+  .campo-largo {
+    grid-column: auto;
+  }
+
+  .acoes-formulario {
+    flex-wrap: wrap;
+  }
+}
+/* Edicao da situacao na planilha */
+
+.seletor-situacao {
+  width: 145px;
+  max-width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #cbd9e8;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #08345f;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.seletor-situacao:focus {
+  outline: 2px solid #1765a3;
+  outline-offset: 2px;
+}
+
+.seletor-situacao:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
