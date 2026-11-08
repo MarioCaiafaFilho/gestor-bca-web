@@ -39,6 +39,8 @@
     }
 
     function mostrarAutenticado(usuario) {
+      window.location.replace("./menu.html");
+return;
       botaoEntrar.classList.add("oculto");
       botaoSair.classList.remove("oculto");
 

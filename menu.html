@@ -1,0 +1,62 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+  <title>Menu Principal | Gestor BCA</title>
+
+  <link rel="stylesheet" href="./css/menu.css">
+</head>
+
+<body>
+  <header class="cabecalho">
+    <img
+      src="./logo-bca-recortado.png"
+      alt="Bonavere & Caiafa Assessoria Empresarial"
+      class="logo"
+    >
+
+    <button id="sair" class="botao-sair" disabled>
+      Sair da conta
+    </button>
+  </header>
+
+  <main class="conteudo">
+    <p class="subtitulo">SISTEMA INTERNO DE GESTÃO</p>
+
+    <h1>Bem-vindo ao Gestor BCA</h1>
+
+    <p class="descricao">
+      Selecione o módulo que deseja acessar.
+    </p>
+
+    <p id="mensagemMenu" class="mensagem"
+       role="status" aria-live="polite">
+      Verificando suas permissões...
+    </p>
+
+    <section class="modulos" aria-label="Módulos disponíveis">
+
+      <a
+        href="./bonavere.html"
+        id="moduloBonavere"
+        class="cartao-modulo oculto"
+      >
+        <span class="icone-modulo">⚖</span>
+        <span class="titulo-modulo">Bonavere</span>
+        <span class="descricao-modulo">
+          Controle de processos e prazos
+        </span>
+        <span class="acessar">Acessar módulo →</span>
+      </a>
+
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <script src="./js/menu.js" defer></script>
+</body>
+</html>
