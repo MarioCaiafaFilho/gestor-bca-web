@@ -364,3 +364,21 @@ td.vazio {
   opacity: 0.7;
   cursor: wait;
 }
+/* Navegacao para o menu principal */
+
+.voltar-menu {
+  display: inline-block;
+  padding: 10px 15px;
+  border: 1px solid #cbd9e8;
+  border-radius: 8px;
+  color: #08345f;
+  background: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.voltar-menu:hover {
+  background: #edf4fb;
+}
