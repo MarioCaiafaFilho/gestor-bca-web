@@ -5,7 +5,6 @@
 // GESTOR BCA - MODULO BONAVERE
 // ==========================================
 
-// Use apenas a chave publica do Supabase.
 const SUPABASE_URL =
   "https://pdvipfzbtpsuenpumktb.supabase.co";
 
@@ -15,7 +14,9 @@ const SUPABASE_PUBLIC_KEY =
 let clienteSupabase = null;
 let usuarioAtual = null;
 let podeEditar = false;
+
 let responsaveis = [];
+let tiposAtividade = [];
 
 const tabelaAbertos =
   document.getElementById("processosAbertos");
@@ -52,7 +53,7 @@ const situacoes = {
 };
 
 // ==========================================
-// VERIFICAR SE O PROCESSO ESTA ENCERRADO
+// CONTROLE DOS PROCESSOS ENCERRADOS
 // ==========================================
 
 function encerrado(processo) {
@@ -102,22 +103,19 @@ function formatarData(data) {
 
   const partes = data.split("-");
 
-  if (partes.length !== 3) return data;
-
-  return `${partes[2]}/${partes[1]}/${partes[0]}`;
+  return partes.length === 3
+    ? `${partes[2]}/${partes[1]}/${partes[0]}`
+    : data;
 }
 
 function dataEmDias(data) {
   if (!data) return null;
 
-  const partes = data.split("-").map(Number);
+  const [ano, mes, dia] =
+    data.split("-").map(Number);
 
   return Math.floor(
-    Date.UTC(
-      partes[0],
-      partes[1] - 1,
-      partes[2]
-    ) / 86400000
+    Date.UTC(ano, mes - 1, dia) / 86400000
   );
 }
 
@@ -138,7 +136,7 @@ function diasAteVencimento(data) {
 }
 
 // ==========================================
-// CORES DOS VENCIMENTOS - 7 DIAS
+// ALERTA DE VENCIMENTO - 7 DIAS
 // ==========================================
 
 function aplicarCorVencimento(celula, processo) {
@@ -149,9 +147,8 @@ function aplicarCorVencimento(celula, processo) {
     return;
   }
 
-  const dias = diasAteVencimento(
-    processo.vencimento
-  );
+  const dias =
+    diasAteVencimento(processo.vencimento);
 
   if (dias === null || dias > 7) return;
 
@@ -249,15 +246,14 @@ function adicionarCelulaEditavel(
   celula.addEventListener("click", () => {
     if (celula.querySelector("input")) return;
 
-    const valorOriginal =
-      processo[campo] || "";
+    const original = processo[campo] || "";
 
     const entrada =
       document.createElement("input");
 
     entrada.type = "text";
     entrada.className = "entrada-celula";
-    entrada.value = valorOriginal;
+    entrada.value = original;
 
     entrada.setAttribute(
       "aria-label",
@@ -272,8 +268,7 @@ function adicionarCelulaEditavel(
     let finalizada = false;
 
     function restaurar() {
-      celula.textContent =
-        valorOriginal || "—";
+      celula.textContent = original || "—";
     }
 
     async function salvar() {
@@ -283,7 +278,7 @@ function adicionarCelulaEditavel(
 
       const novoValor = entrada.value.trim();
 
-      if (novoValor === valorOriginal.trim()) {
+      if (novoValor === original.trim()) {
         restaurar();
         return;
       }
@@ -316,9 +311,7 @@ function adicionarCelulaEditavel(
         if (evento.key === "Enter") {
           evento.preventDefault();
           salvar();
-        }
-
-        if (evento.key === "Escape") {
+        } else if (evento.key === "Escape") {
           evento.preventDefault();
           finalizada = true;
           restaurar();
@@ -333,7 +326,7 @@ function adicionarCelulaEditavel(
 }
 
 // ==========================================
-// EDITAR CAMPOS DE DATA
+// EDITAR DATAS
 // ==========================================
 
 function adicionarCelulaData(
@@ -355,20 +348,21 @@ function adicionarCelulaData(
   }
 
   celula.classList.add("celula-editavel");
-  celula.title = "Clique para escolher uma data";
+
+  celula.title =
+    "Clique para escolher uma data";
 
   celula.addEventListener("click", () => {
     if (celula.querySelector("input")) return;
 
-    const valorOriginal =
-      processo[campo] || "";
+    const original = processo[campo] || "";
 
     const entrada =
       document.createElement("input");
 
     entrada.type = "date";
     entrada.className = "entrada-celula";
-    entrada.value = valorOriginal;
+    entrada.value = original;
 
     celula.style.backgroundColor = "";
     celula.style.color = "";
@@ -379,7 +373,7 @@ function adicionarCelulaData(
 
     function restaurar() {
       celula.textContent =
-        formatarData(valorOriginal);
+        formatarData(original);
 
       if (campo === "vencimento") {
         aplicarCorVencimento(
@@ -397,9 +391,7 @@ function adicionarCelulaData(
       const novaData =
         entrada.value || null;
 
-      if (
-        novaData === (valorOriginal || null)
-      ) {
+      if (novaData === (original || null)) {
         restaurar();
         return;
       }
@@ -426,7 +418,10 @@ function adicionarCelulaData(
       }
     }
 
-    entrada.addEventListener("change", salvar);
+    entrada.addEventListener(
+      "change",
+      salvar
+    );
 
     entrada.addEventListener(
       "keydown",
@@ -434,9 +429,7 @@ function adicionarCelulaData(
         if (evento.key === "Enter") {
           evento.preventDefault();
           salvar();
-        }
-
-        if (evento.key === "Escape") {
+        } else if (evento.key === "Escape") {
           evento.preventDefault();
           finalizada = true;
           restaurar();
@@ -451,23 +444,28 @@ function adicionarCelulaData(
 }
 
 // ==========================================
-// RESPONSAVEL EDITAVEL NA PLANILHA
+// RESPONSAVEL E TIPO EDITAVEIS
 // ==========================================
 
-function adicionarCelulaResponsavel(
+function adicionarCelulaSelecao(
   linha,
-  processo
+  processo,
+  configuracao
 ) {
-  const nomeAtual =
-    processo.bonavere_responsaveis?.nome || "—";
+  const {
+    campo,
+    nomeAtual,
+    opcoes,
+    rotulo
+  } = configuracao;
 
   const celula = adicionarCelula(
     linha,
-    nomeAtual
+    nomeAtual || "—"
   );
 
-  // Em processos encerrados, somente
-  // a situacao pode ser alterada.
+  // Processos encerrados:
+  // somente a situacao continua editavel.
   if (!podeEditarCampos(processo)) {
     return celula;
   }
@@ -479,29 +477,25 @@ function adicionarCelulaResponsavel(
 
   seletor.setAttribute(
     "aria-label",
-    "Responsável do processo " +
-      (processo.numero_processo || "")
+    `${rotulo} do processo ${processo.numero_processo || ""}`
   );
 
-  // Permite deixar o responsavel em branco.
-  const opcaoVazia =
-    document.createElement("option");
+  // Opcao para deixar o campo vazio.
+  const vazia = document.createElement("option");
 
-  opcaoVazia.value = "";
-  opcaoVazia.textContent = "Selecione";
+  vazia.value = "";
+  vazia.textContent = "Selecione";
 
-  seletor.appendChild(opcaoVazia);
+  seletor.appendChild(vazia);
 
-  // Lista de responsaveis cadastrados
-  // no Painel Administrativo.
-  for (const pessoa of responsaveis) {
-    // Responsaveis inativos nao podem ser
-    // escolhidos em novos vinculos.
-    // Se ja estiverem vinculados ao processo,
-    // continuam aparecendo.
+  const atual = processo[campo] || "";
+
+  // Carrega apenas registros ativos ou
+  // o registro inativo que ja estava vinculado.
+  for (const item of opcoes) {
     if (
-      !pessoa.ativo &&
-      pessoa.id !== processo.responsavel_id
+      !item.ativo &&
+      item.id !== atual
     ) {
       continue;
     }
@@ -509,48 +503,61 @@ function adicionarCelulaResponsavel(
     const opcao =
       document.createElement("option");
 
-    opcao.value = pessoa.id;
+    opcao.value = item.id;
 
     opcao.textContent =
-      pessoa.nome +
-      (pessoa.ativo ? "" : " (Inativo)");
+      item.nome +
+      (item.ativo ? "" : " (Inativo)");
 
     seletor.appendChild(opcao);
   }
 
-  seletor.value =
-    processo.responsavel_id || "";
+  // Preserva a identificacao do item atual
+  // caso ele nao venha na lista consultada.
+  if (
+    atual &&
+    !Array.from(seletor.options).some(
+      opcao => opcao.value === atual
+    )
+  ) {
+    const opcao =
+      document.createElement("option");
+
+    opcao.value = atual;
+
+    opcao.textContent =
+      `${nomeAtual || "Registro atual"} (não disponível)`;
+
+    seletor.appendChild(opcao);
+  }
+
+  seletor.value = atual;
 
   seletor.addEventListener(
     "change",
     async () => {
-      const valorAnterior =
-        processo.responsavel_id || "";
+      const novo = seletor.value;
 
-      const novoValor = seletor.value;
-
-      if (novoValor === valorAnterior) {
-        return;
-      }
+      if (novo === atual) return;
 
       seletor.disabled = true;
 
       try {
         await atualizarCampo(
           processo,
-          "responsavel_id",
-          novoValor || null
+          campo,
+          novo || null
         );
       } catch (erro) {
         console.error(
-          "Erro ao alterar responsável:",
+          `Erro ao alterar ${rotulo}:`,
           erro
         );
 
-        seletor.value = valorAnterior;
+        seletor.value = atual;
 
         alert(
-          "Não foi possível alterar o responsável."
+          `Não foi possível alterar ${rotulo.toLowerCase()}.`
         );
       } finally {
         seletor.disabled = false;
@@ -564,7 +571,7 @@ function adicionarCelulaResponsavel(
 }
 
 // ==========================================
-// MONTAR AS LINHAS DOS PROCESSOS
+// MONTAR LINHAS DA PLANILHA
 // ==========================================
 
 function criarLinha(processo) {
@@ -627,16 +634,30 @@ function criarLinha(processo) {
     "observacao"
   );
 
-  // 8. Responsavel - agora editavel
-  adicionarCelulaResponsavel(
+  // 8. Responsavel
+  adicionarCelulaSelecao(
     linha,
-    processo
+    processo,
+    {
+      campo: "responsavel_id",
+      nomeAtual:
+        processo.bonavere_responsaveis?.nome,
+      opcoes: responsaveis,
+      rotulo: "Responsável"
+    }
   );
 
-  // 9. Tipo - somente leitura nesta etapa
-  adicionarCelula(
+  // 9. Tipo - agora editavel
+  adicionarCelulaSelecao(
     linha,
-    processo.bonavere_tipos?.nome || "—"
+    processo,
+    {
+      campo: "tipo_id",
+      nomeAtual:
+        processo.bonavere_tipos?.nome,
+      opcoes: tiposAtividade,
+      rotulo: "Tipo"
+    }
   );
 
   // 10. Situacao
@@ -651,19 +672,18 @@ function criarLinha(processo) {
 
     seletor.setAttribute(
       "aria-label",
-      "Situação do processo " +
-        (processo.numero_processo || "")
+      `Situação do processo ${processo.numero_processo || ""}`
     );
 
     for (
-      const [valor, descricao]
+      const [valor, nome]
       of Object.entries(situacoes)
     ) {
       const opcao =
         document.createElement("option");
 
       opcao.value = valor;
-      opcao.textContent = descricao;
+      opcao.textContent = nome;
 
       seletor.appendChild(opcao);
     }
@@ -676,6 +696,7 @@ function criarLinha(processo) {
     );
 
     celulaSituacao.appendChild(seletor);
+
   } else {
     celulaSituacao.textContent =
       situacoes[processo.status] ||
@@ -692,7 +713,7 @@ function criarLinha(processo) {
 // ==========================================
 
 function ordenarAbertos(a, b) {
-  // Sem data limite vem primeiro.
+  // Sem data limite: primeiro.
   if (!a.data_limite && b.data_limite) {
     return -1;
   }
@@ -701,7 +722,6 @@ function ordenarAbertos(a, b) {
     return 1;
   }
 
-  // Datas mais proximas primeiro.
   if (a.data_limite && b.data_limite) {
     const diferenca =
       a.data_limite.localeCompare(
@@ -713,7 +733,7 @@ function ordenarAbertos(a, b) {
     }
   }
 
-  // Desempate pelo vencimento.
+  // Desempate pela data de vencimento.
   if (!a.vencimento && b.vencimento) {
     return 1;
   }
@@ -739,7 +759,7 @@ function ordenarAbertos(a, b) {
 }
 
 // ==========================================
-// MOSTRAR PROCESSOS ABERTOS E FECHADOS
+// SEPARAR PROCESSOS ABERTOS E FECHADOS
 // ==========================================
 
 function mostrarProcessos(processos) {
@@ -792,7 +812,7 @@ function mostrarProcessos(processos) {
 }
 
 // ==========================================
-// ALTERAR SITUACAO DO PROCESSO
+// ALTERAR SITUACAO
 // ==========================================
 
 async function alterarSituacao(
@@ -815,10 +835,8 @@ async function alterarSituacao(
     novaSituacao === "nada_a_fazer"
   ) {
     const confirmar = window.confirm(
-      "Deseja encerrar este prazo como " +
-      `"${situacoes[novaSituacao]}"?\n\n` +
-      "O registro será transferido para " +
-      "Processos fechados."
+      `Deseja encerrar este prazo como "${situacoes[novaSituacao]}"?\n\n` +
+      "O registro será transferido para Processos fechados."
     );
 
     if (!confirmar) {
@@ -842,11 +860,12 @@ async function alterarSituacao(
 
     if (!data || data.length !== 1) {
       throw new Error(
-        "O banco não confirmou a alteração de situação."
+        "O banco não confirmou a alteração."
       );
     }
 
     await carregarProcessos();
+
   } catch (erro) {
     console.error(
       "Erro ao alterar situação:",
@@ -864,7 +883,7 @@ async function alterarSituacao(
 }
 
 // ==========================================
-// CARREGAR RESPONSAVEIS DO SUPABASE
+// CARREGAR RESPONSAVEIS
 // ==========================================
 
 async function carregarResponsaveis() {
@@ -878,6 +897,23 @@ async function carregarResponsaveis() {
   if (error) throw error;
 
   responsaveis = data || [];
+}
+
+// ==========================================
+// CARREGAR TIPOS DE ATIVIDADE
+// ==========================================
+
+async function carregarTipos() {
+  const { data, error } = await clienteSupabase
+    .from("bonavere_tipos")
+    .select("id, nome, ativo")
+    .order("nome", {
+      ascending: true
+    });
+
+  if (error) throw error;
+
+  tiposAtividade = data || [];
 }
 
 // ==========================================
@@ -937,6 +973,7 @@ async function verificarPermissao() {
 
   if (perfil.master) {
     podeEditar = true;
+
   } else {
     const {
       data: permissao,
@@ -966,13 +1003,13 @@ async function verificarPermissao() {
 function preencherSelecao(campo, registros) {
   campo.replaceChildren();
 
-  const opcaoInicial =
+  const primeira =
     document.createElement("option");
 
-  opcaoInicial.value = "";
-  opcaoInicial.textContent = "Selecione";
+  primeira.value = "";
+  primeira.textContent = "Selecione";
 
-  campo.appendChild(opcaoInicial);
+  campo.appendChild(primeira);
 
   for (const registro of registros) {
     const opcao =
@@ -986,15 +1023,6 @@ function preencherSelecao(campo, registros) {
 }
 
 async function carregarOpcoesFormulario() {
-  const { data: tipos, error } =
-    await clienteSupabase
-      .from("bonavere_tipos")
-      .select("id, nome")
-      .eq("ativo", true)
-      .order("nome");
-
-  if (error) throw error;
-
   preencherSelecao(
     formulario.elements.namedItem(
       "responsavel_id"
@@ -1006,7 +1034,9 @@ async function carregarOpcoesFormulario() {
 
   preencherSelecao(
     formulario.elements.namedItem("tipo_id"),
-    tipos || []
+    tiposAtividade.filter(
+      tipo => tipo.ativo
+    )
   );
 }
 
@@ -1024,12 +1054,17 @@ botaoNovo.addEventListener(
     try {
       formulario.reset();
 
-      await carregarResponsaveis();
+      await Promise.all([
+        carregarResponsaveis(),
+        carregarTipos()
+      ]);
+
       await carregarOpcoesFormulario();
 
       botaoSalvar.disabled = false;
 
       modal.showModal();
+
     } catch (erro) {
       console.error(
         "Erro ao preparar formulário:",
@@ -1055,10 +1090,7 @@ botaoCancelar.addEventListener(
 // ==========================================
 
 function textoOuNulo(valor) {
-  const texto =
-    String(valor || "").trim();
-
-  return texto || null;
+  return String(valor || "").trim() || null;
 }
 
 formulario.addEventListener(
@@ -1073,8 +1105,7 @@ formulario.addEventListener(
       return;
     }
 
-    const dados =
-      new FormData(formulario);
+    const dados = new FormData(formulario);
 
     const novoProcesso = {
       numero_processo: textoOuNulo(
@@ -1121,10 +1152,9 @@ formulario.addEventListener(
     botaoSalvar.textContent = "Salvando...";
 
     try {
-      const { error } =
-        await clienteSupabase
-          .from("bonavere_processos")
-          .insert(novoProcesso);
+      const { error } = await clienteSupabase
+        .from("bonavere_processos")
+        .insert(novoProcesso);
 
       if (error) throw error;
 
@@ -1135,6 +1165,7 @@ formulario.addEventListener(
       alert(
         "Prazo cadastrado com sucesso!"
       );
+
     } catch (erro) {
       console.error(
         "Erro ao cadastrar prazo:",
@@ -1144,6 +1175,7 @@ formulario.addEventListener(
       alert(
         "Não foi possível concluir o cadastro."
       );
+
     } finally {
       botaoSalvar.disabled = false;
       botaoSalvar.textContent = "Salvar prazo";
@@ -1160,6 +1192,15 @@ async function iniciarBonavere() {
     if (!window.supabase) {
       throw new Error(
         "Biblioteca Supabase indisponível."
+      );
+    }
+
+    if (
+      SUPABASE_PUBLIC_KEY ===
+      "COLE_AQUI_SUA_CHAVE_PUBLISHABLE"
+    ) {
+      throw new Error(
+        "Configure a chave pública do Supabase."
       );
     }
 
@@ -1192,8 +1233,14 @@ async function iniciarBonavere() {
     );
 
     await verificarPermissao();
-    await carregarResponsaveis();
+
+    await Promise.all([
+      carregarResponsaveis(),
+      carregarTipos()
+    ]);
+
     await carregarProcessos();
+
   } catch (erro) {
     console.error(
       "Erro ao iniciar Bonavere:",
