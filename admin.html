@@ -79,14 +79,53 @@
   </div>
 </article>
 
-        <article class="cartao">
-          <h2>Tipos de atividades</h2>
-          <p>
-            Cadastro das atividades jurídicas
-            utilizadas no Bonavere.
-          </p>
-          <span>Cadastro em preparação</span>
-        </article>
+       
+<article class="cartao">
+  <h2>Tipos de atividades</h2>
+
+  <p>
+    Cadastre e gerencie os tipos de atividades
+    utilizados nos processos do Bonavere.
+  </p>
+
+  <form id="formTipo" class="form-responsavel">
+    <label for="nomeTipo">
+      Nome da atividade
+    </label>
+
+    <div class="linha-formulario">
+      <input
+        type="text"
+        id="nomeTipo"
+        name="nome"
+        maxlength="150"
+        placeholder="Digite o tipo de atividade"
+        required
+      >
+
+      <button
+        type="submit"
+        id="salvarTipo"
+        disabled
+      >
+        Cadastrar
+      </button>
+    </div>
+  </form>
+
+  <p
+    id="mensagemTipo"
+    role="status"
+    aria-live="polite"
+  ></p>
+
+  <h3>Tipos cadastrados</h3>
+
+  <div id="listaTipos">
+    Nenhum tipo carregado.
+  </div>
+</article>
+
 
         <article class="cartao">
           <h2>Valores das atividades</h2>
