@@ -330,3 +330,37 @@ td.vazio {
   opacity: 0.6;
   cursor: wait;
 }
+
+/* ==========================================
+   EDICAO DIRETA DAS CELULAS
+   ========================================== */
+
+.celula-editavel {
+  cursor: text;
+  transition: box-shadow 0.15s ease;
+}
+
+.celula-editavel:hover {
+  box-shadow: inset 0 0 0 1px #8bb8df;
+}
+
+.entrada-celula {
+  width: 100%;
+  min-width: 110px;
+  padding: 7px 9px;
+  border: 1px solid #1765a3;
+  border-radius: 6px;
+  background: white;
+  color: #25364a;
+  font: inherit;
+  outline: none;
+}
+
+.entrada-celula:focus {
+  box-shadow: 0 0 0 3px rgba(23, 101, 163, 0.12);
+}
+
+.entrada-celula:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}

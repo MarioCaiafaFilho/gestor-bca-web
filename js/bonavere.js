@@ -173,6 +173,105 @@ function adicionarCelula(linha, valor) {
   return celula;
 }
 
+/* ==========================================
+   EDICAO DIRETA DOS CAMPOS DE TEXTO
+   ========================================== */
+
+function adicionarCelulaEditavel(linha, processo, campo) {
+  const celula = adicionarCelula(
+    linha,
+    processo[campo] || "—"
+  );
+
+  if (!podeEditar) return celula;
+
+  celula.classList.add("celula-editavel");
+  celula.title = "Clique para editar";
+
+  celula.addEventListener("click", () => {
+    if (celula.querySelector("input")) return;
+
+    const valorOriginal = processo[campo] || "";
+
+    const entrada = document.createElement("input");
+    entrada.type = "text";
+    entrada.className = "entrada-celula";
+    entrada.value = valorOriginal;
+    entrada.setAttribute("aria-label", `Editar ${campo}`);
+
+    celula.replaceChildren(entrada);
+    entrada.focus();
+    entrada.select();
+
+    let finalizada = false;
+
+    function restaurar() {
+      celula.textContent = valorOriginal || "—";
+    }
+
+    async function salvar() {
+      if (finalizada) return;
+      finalizada = true;
+
+      const novoValor = entrada.value.trim();
+
+      if (novoValor === valorOriginal.trim()) {
+        restaurar();
+        return;
+      }
+
+      entrada.disabled = true;
+
+      try {
+        const { data, error } = await clienteSupabase
+          .from("bonavere_processos")
+          .update({
+            [campo]: novoValor || null
+          })
+          .eq("id", processo.id)
+          .select("id");
+
+        if (error) throw error;
+
+        if (!data || data.length !== 1) {
+          throw new Error(
+            "Alteração não confirmada pelo banco."
+          );
+        }
+
+        await carregarProcessos();
+
+      } catch (erro) {
+        console.error("Erro ao editar campo:", erro);
+        restaurar();
+
+        alert(
+          "Não foi possível salvar a alteração. " +
+          "Verifique o Console."
+        );
+      }
+    }
+
+    entrada.addEventListener("keydown", (evento) => {
+      if (evento.key === "Enter") {
+        evento.preventDefault();
+        salvar();
+      }
+
+      if (evento.key === "Escape") {
+        evento.preventDefault();
+        finalizada = true;
+        restaurar();
+      }
+    });
+
+    entrada.addEventListener("blur", salvar);
+  });
+
+  return celula;
+}
+
+
 function criarLinha(processo) {
   const linha = document.createElement("tr");
 
@@ -184,30 +283,33 @@ function criarLinha(processo) {
     linha.classList.add("concluida");
   }
 
-  adicionarCelula(
-    linha,
-    processo.numero_processo || "—"
-  );
+ 
+adicionarCelulaEditavel(
+  linha,
+  processo,
+  "numero_processo"
+);
 
-  adicionarCelula(
-    linha,
-    processo.origem || "—"
-  );
+adicionarCelulaEditavel(
+  linha,
+  processo,
+  "origem"
+);
 
-  adicionarCelula(
-    linha,
-    processo.cliente || "—"
-  );
+adicionarCelulaEditavel(
+  linha,
+  processo,
+  "cliente"
+);
+adicionarCelula(
+  linha,
+  formatarData(processo.publicacao)
+);
 
-  adicionarCelula(
-    linha,
-    formatarData(processo.publicacao)
-  );
-
-  adicionarCelula(
-    linha,
-    formatarData(processo.data_limite)
-  );
+adicionarCelula(
+  linha,
+  formatarData(processo.data_limite)
+);
 
   const celulaVencimento = adicionarCelula(
     linha,
@@ -219,10 +321,11 @@ function criarLinha(processo) {
     processo
   );
 
-  adicionarCelula(
-    linha,
-    processo.observacao || "—"
-  );
+  adicionarCelulaEditavel(
+  linha,
+  processo,
+  "observacao"
+);
 
   adicionarCelula(
     linha,
