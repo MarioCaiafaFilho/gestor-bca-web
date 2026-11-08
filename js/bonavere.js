@@ -271,6 +271,103 @@ function adicionarCelulaEditavel(linha, processo, campo) {
   return celula;
 }
 
+function adicionarCelulaData(linha, processo, campo) {
+  const celula = adicionarCelula(
+    linha,
+    formatarData(processo[campo])
+  );
+
+  if (campo === "vencimento") {
+    aplicarCorVencimento(celula, processo);
+  }
+
+  if (!podeEditar) return celula;
+
+  celula.classList.add("celula-editavel");
+  celula.title = "Clique para escolher uma data";
+
+  celula.addEventListener("click", () => {
+    if (celula.querySelector("input")) return;
+
+    const valorOriginal = processo[campo] || "";
+    const entrada = document.createElement("input");
+
+    entrada.type = "date";
+    entrada.className = "entrada-celula";
+    entrada.value = valorOriginal;
+
+    celula.style.backgroundColor = "";
+    celula.style.color = "";
+    celula.replaceChildren(entrada);
+
+    let finalizada = false;
+
+    function restaurar() {
+      celula.textContent = formatarData(valorOriginal);
+
+      if (campo === "vencimento") {
+        aplicarCorVencimento(celula, processo);
+      }
+    }
+
+    async function salvar() {
+      if (finalizada) return;
+      finalizada = true;
+
+      const novaData = entrada.value || null;
+
+      if (novaData === (valorOriginal || null)) {
+        restaurar();
+        return;
+      }
+
+      entrada.disabled = true;
+
+      try {
+        const { data, error } = await clienteSupabase
+          .from("bonavere_processos")
+          .update({ [campo]: novaData })
+          .eq("id", processo.id)
+          .select("id");
+
+        if (error) throw error;
+
+        if (!data || data.length !== 1) {
+          throw new Error(
+            "O banco não confirmou a alteração."
+          );
+        }
+
+        await carregarProcessos();
+
+      } catch (erro) {
+        console.error("Erro ao alterar data:", erro);
+        restaurar();
+        alert("Não foi possível salvar a data.");
+      }
+    }
+
+    entrada.addEventListener("change", salvar);
+
+    entrada.addEventListener("keydown", (evento) => {
+      if (evento.key === "Enter") {
+        evento.preventDefault();
+        salvar();
+      }
+
+      if (evento.key === "Escape") {
+        evento.preventDefault();
+        finalizada = true;
+        restaurar();
+      }
+    });
+
+    entrada.focus();
+  });
+
+  return celula;
+}
+
 
 function criarLinha(processo) {
   const linha = document.createElement("tr");
