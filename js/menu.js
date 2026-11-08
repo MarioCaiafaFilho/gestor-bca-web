@@ -7,7 +7,7 @@ const SUPABASE_URL =
   "https://pdvipfzbtpsuenpumktb.supabase.co";
 
 const SUPABASE_PUBLIC_KEY =
-  "COLE_AQUI_SUA_CHAVE_PUBLISHABLE";
+  "sb_publishable_IOUb057J98PySmHjKai1Eg_mR4rSIjB";
 
 const mensagem =
   document.getElementById("mensagemMenu");
