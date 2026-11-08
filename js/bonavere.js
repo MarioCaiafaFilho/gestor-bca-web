@@ -404,11 +404,7 @@ adicionarCelulaData(linha, processo, "data_limite");
 
 adicionarCelulaData(linha, processo, "vencimento");
 
-  aplicarCorVencimento(
-    celulaVencimento,
-    processo
-  );
-
+ 
   adicionarCelulaEditavel(
   linha,
   processo,
