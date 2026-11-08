@@ -183,8 +183,13 @@ function adicionarCelulaEditavel(linha, processo, campo) {
     processo[campo] || "—"
   );
 
-  if (!podeEditar) return celula;
-
+if (
+  !podeEditar ||
+  processo.status === "concluida" ||
+  processo.status === "nada_a_fazer"
+) {
+  return celula;
+}
   celula.classList.add("celula-editavel");
   celula.title = "Clique para editar";
 
@@ -281,8 +286,13 @@ function adicionarCelulaData(linha, processo, campo) {
     aplicarCorVencimento(celula, processo);
   }
 
-  if (!podeEditar) return celula;
-
+if (
+  !podeEditar ||
+  processo.status === "concluida" ||
+  processo.status === "nada_a_fazer"
+) {
+  return celula;
+}
   celula.classList.add("celula-editavel");
   celula.title = "Clique para escolher uma data";
 
