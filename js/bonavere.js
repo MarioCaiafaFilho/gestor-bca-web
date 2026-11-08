@@ -5,7 +5,7 @@
 // GESTOR BCA - MODULO BONAVERE
 // ==========================================
 
-// Utilize a mesma chave publica do login.js.
+// Use apenas a chave publica do Supabase.
 const SUPABASE_URL =
   "https://pdvipfzbtpsuenpumktb.supabase.co";
 
@@ -15,6 +15,7 @@ const SUPABASE_PUBLIC_KEY =
 let clienteSupabase = null;
 let usuarioAtual = null;
 let podeEditar = false;
+let responsaveis = [];
 
 const tabelaAbertos =
   document.getElementById("processosAbertos");
@@ -51,7 +52,22 @@ const situacoes = {
 };
 
 // ==========================================
-// MENSAGENS E DATAS
+// VERIFICAR SE O PROCESSO ESTA ENCERRADO
+// ==========================================
+
+function encerrado(processo) {
+  return (
+    processo.status === "concluida" ||
+    processo.status === "nada_a_fazer"
+  );
+}
+
+function podeEditarCampos(processo) {
+  return podeEditar && !encerrado(processo);
+}
+
+// ==========================================
+// MENSAGENS E CELULAS
 // ==========================================
 
 function mensagemTabela(tabela, mensagem) {
@@ -67,6 +83,19 @@ function mensagemTabela(tabela, mensagem) {
   linha.appendChild(celula);
   tabela.appendChild(linha);
 }
+
+function adicionarCelula(linha, valor) {
+  const celula = document.createElement("td");
+
+  celula.textContent = valor ?? "—";
+  linha.appendChild(celula);
+
+  return celula;
+}
+
+// ==========================================
+// FORMATACAO DAS DATAS
+// ==========================================
 
 function formatarData(data) {
   if (!data) return "—";
@@ -109,20 +138,20 @@ function diasAteVencimento(data) {
 }
 
 // ==========================================
-// CORES DOS PRAZOS
+// CORES DOS VENCIMENTOS - 7 DIAS
 // ==========================================
 
 function aplicarCorVencimento(celula, processo) {
   if (
     !processo.vencimento ||
-    processo.status === "concluida" ||
-    processo.status === "nada_a_fazer"
+    encerrado(processo)
   ) {
     return;
   }
 
-  const dias =
-    diasAteVencimento(processo.vencimento);
+  const dias = diasAteVencimento(
+    processo.vencimento
+  );
 
   if (dias === null || dias > 7) return;
 
@@ -160,62 +189,96 @@ function aplicarCorVencimento(celula, processo) {
 }
 
 // ==========================================
-// LINHAS DAS TABELAS
+// SALVAR ALTERACOES DE CAMPOS
 // ==========================================
 
-function adicionarCelula(linha, valor) {
-  const celula = document.createElement("td");
+async function atualizarCampo(
+  processo,
+  campo,
+  valor
+) {
+  if (
+    !podeEditarCampos(processo) ||
+    !usuarioAtual
+  ) {
+    throw new Error(
+      "Este registro não permite edição de campos."
+    );
+  }
 
-  celula.textContent = valor ?? "—";
+  const { data, error } = await clienteSupabase
+    .from("bonavere_processos")
+    .update({
+      [campo]: valor
+    })
+    .eq("id", processo.id)
+    .select("id");
 
-  linha.appendChild(celula);
+  if (error) throw error;
 
-  return celula;
+  if (!data || data.length !== 1) {
+    throw new Error(
+      "O banco não confirmou a alteração."
+    );
+  }
+
+  await carregarProcessos();
 }
 
-/* ==========================================
-   EDICAO DIRETA DOS CAMPOS DE TEXTO
-   ========================================== */
+// ==========================================
+// EDITAR CAMPOS DE TEXTO
+// ==========================================
 
-function adicionarCelulaEditavel(linha, processo, campo) {
+function adicionarCelulaEditavel(
+  linha,
+  processo,
+  campo
+) {
   const celula = adicionarCelula(
     linha,
     processo[campo] || "—"
   );
 
-if (
-  !podeEditar ||
-  processo.status === "concluida" ||
-  processo.status === "nada_a_fazer"
-) {
-  return celula;
-}
+  if (!podeEditarCampos(processo)) {
+    return celula;
+  }
+
   celula.classList.add("celula-editavel");
   celula.title = "Clique para editar";
 
   celula.addEventListener("click", () => {
     if (celula.querySelector("input")) return;
 
-    const valorOriginal = processo[campo] || "";
+    const valorOriginal =
+      processo[campo] || "";
 
-    const entrada = document.createElement("input");
+    const entrada =
+      document.createElement("input");
+
     entrada.type = "text";
     entrada.className = "entrada-celula";
     entrada.value = valorOriginal;
-    entrada.setAttribute("aria-label", `Editar ${campo}`);
+
+    entrada.setAttribute(
+      "aria-label",
+      `Editar ${campo}`
+    );
 
     celula.replaceChildren(entrada);
+
     entrada.focus();
     entrada.select();
 
     let finalizada = false;
 
     function restaurar() {
-      celula.textContent = valorOriginal || "—";
+      celula.textContent =
+        valorOriginal || "—";
     }
 
     async function salvar() {
       if (finalizada) return;
+
       finalizada = true;
 
       const novoValor = entrada.value.trim();
@@ -228,47 +291,40 @@ if (
       entrada.disabled = true;
 
       try {
-        const { data, error } = await clienteSupabase
-          .from("bonavere_processos")
-          .update({
-            [campo]: novoValor || null
-          })
-          .eq("id", processo.id)
-          .select("id");
-
-        if (error) throw error;
-
-        if (!data || data.length !== 1) {
-          throw new Error(
-            "Alteração não confirmada pelo banco."
-          );
-        }
-
-        await carregarProcessos();
-
+        await atualizarCampo(
+          processo,
+          campo,
+          novoValor || null
+        );
       } catch (erro) {
-        console.error("Erro ao editar campo:", erro);
+        console.error(
+          "Erro ao editar texto:",
+          erro
+        );
+
         restaurar();
 
         alert(
-          "Não foi possível salvar a alteração. " +
-          "Verifique o Console."
+          "Não foi possível salvar a alteração."
         );
       }
     }
 
-    entrada.addEventListener("keydown", (evento) => {
-      if (evento.key === "Enter") {
-        evento.preventDefault();
-        salvar();
-      }
+    entrada.addEventListener(
+      "keydown",
+      (evento) => {
+        if (evento.key === "Enter") {
+          evento.preventDefault();
+          salvar();
+        }
 
-      if (evento.key === "Escape") {
-        evento.preventDefault();
-        finalizada = true;
-        restaurar();
+        if (evento.key === "Escape") {
+          evento.preventDefault();
+          finalizada = true;
+          restaurar();
+        }
       }
-    });
+    );
 
     entrada.addEventListener("blur", salvar);
   });
@@ -276,7 +332,15 @@ if (
   return celula;
 }
 
-function adicionarCelulaData(linha, processo, campo) {
+// ==========================================
+// EDITAR CAMPOS DE DATA
+// ==========================================
+
+function adicionarCelulaData(
+  linha,
+  processo,
+  campo
+) {
   const celula = adicionarCelula(
     linha,
     formatarData(processo[campo])
@@ -286,21 +350,21 @@ function adicionarCelulaData(linha, processo, campo) {
     aplicarCorVencimento(celula, processo);
   }
 
-if (
-  !podeEditar ||
-  processo.status === "concluida" ||
-  processo.status === "nada_a_fazer"
-) {
-  return celula;
-}
+  if (!podeEditarCampos(processo)) {
+    return celula;
+  }
+
   celula.classList.add("celula-editavel");
   celula.title = "Clique para escolher uma data";
 
   celula.addEventListener("click", () => {
     if (celula.querySelector("input")) return;
 
-    const valorOriginal = processo[campo] || "";
-    const entrada = document.createElement("input");
+    const valorOriginal =
+      processo[campo] || "";
+
+    const entrada =
+      document.createElement("input");
 
     entrada.type = "date";
     entrada.className = "entrada-celula";
@@ -308,25 +372,34 @@ if (
 
     celula.style.backgroundColor = "";
     celula.style.color = "";
+
     celula.replaceChildren(entrada);
 
     let finalizada = false;
 
     function restaurar() {
-      celula.textContent = formatarData(valorOriginal);
+      celula.textContent =
+        formatarData(valorOriginal);
 
       if (campo === "vencimento") {
-        aplicarCorVencimento(celula, processo);
+        aplicarCorVencimento(
+          celula,
+          processo
+        );
       }
     }
 
     async function salvar() {
       if (finalizada) return;
+
       finalizada = true;
 
-      const novaData = entrada.value || null;
+      const novaData =
+        entrada.value || null;
 
-      if (novaData === (valorOriginal || null)) {
+      if (
+        novaData === (valorOriginal || null)
+      ) {
         restaurar();
         return;
       }
@@ -334,43 +407,42 @@ if (
       entrada.disabled = true;
 
       try {
-        const { data, error } = await clienteSupabase
-          .from("bonavere_processos")
-          .update({ [campo]: novaData })
-          .eq("id", processo.id)
-          .select("id");
-
-        if (error) throw error;
-
-        if (!data || data.length !== 1) {
-          throw new Error(
-            "O banco não confirmou a alteração."
-          );
-        }
-
-        await carregarProcessos();
-
+        await atualizarCampo(
+          processo,
+          campo,
+          novaData
+        );
       } catch (erro) {
-        console.error("Erro ao alterar data:", erro);
+        console.error(
+          "Erro ao editar data:",
+          erro
+        );
+
         restaurar();
-        alert("Não foi possível salvar a data.");
+
+        alert(
+          "Não foi possível salvar a data."
+        );
       }
     }
 
     entrada.addEventListener("change", salvar);
 
-    entrada.addEventListener("keydown", (evento) => {
-      if (evento.key === "Enter") {
-        evento.preventDefault();
-        salvar();
-      }
+    entrada.addEventListener(
+      "keydown",
+      (evento) => {
+        if (evento.key === "Enter") {
+          evento.preventDefault();
+          salvar();
+        }
 
-      if (evento.key === "Escape") {
-        evento.preventDefault();
-        finalizada = true;
-        restaurar();
+        if (evento.key === "Escape") {
+          evento.preventDefault();
+          finalizada = true;
+          restaurar();
+        }
       }
-    });
+    );
 
     entrada.focus();
   });
@@ -378,6 +450,122 @@ if (
   return celula;
 }
 
+// ==========================================
+// RESPONSAVEL EDITAVEL NA PLANILHA
+// ==========================================
+
+function adicionarCelulaResponsavel(
+  linha,
+  processo
+) {
+  const nomeAtual =
+    processo.bonavere_responsaveis?.nome || "—";
+
+  const celula = adicionarCelula(
+    linha,
+    nomeAtual
+  );
+
+  // Em processos encerrados, somente
+  // a situacao pode ser alterada.
+  if (!podeEditarCampos(processo)) {
+    return celula;
+  }
+
+  const seletor =
+    document.createElement("select");
+
+  seletor.className = "seletor-situacao";
+
+  seletor.setAttribute(
+    "aria-label",
+    "Responsável do processo " +
+      (processo.numero_processo || "")
+  );
+
+  // Permite deixar o responsavel em branco.
+  const opcaoVazia =
+    document.createElement("option");
+
+  opcaoVazia.value = "";
+  opcaoVazia.textContent = "Selecione";
+
+  seletor.appendChild(opcaoVazia);
+
+  // Lista de responsaveis cadastrados
+  // no Painel Administrativo.
+  for (const pessoa of responsaveis) {
+    // Responsaveis inativos nao podem ser
+    // escolhidos em novos vinculos.
+    // Se ja estiverem vinculados ao processo,
+    // continuam aparecendo.
+    if (
+      !pessoa.ativo &&
+      pessoa.id !== processo.responsavel_id
+    ) {
+      continue;
+    }
+
+    const opcao =
+      document.createElement("option");
+
+    opcao.value = pessoa.id;
+
+    opcao.textContent =
+      pessoa.nome +
+      (pessoa.ativo ? "" : " (Inativo)");
+
+    seletor.appendChild(opcao);
+  }
+
+  seletor.value =
+    processo.responsavel_id || "";
+
+  seletor.addEventListener(
+    "change",
+    async () => {
+      const valorAnterior =
+        processo.responsavel_id || "";
+
+      const novoValor = seletor.value;
+
+      if (novoValor === valorAnterior) {
+        return;
+      }
+
+      seletor.disabled = true;
+
+      try {
+        await atualizarCampo(
+          processo,
+          "responsavel_id",
+          novoValor || null
+        );
+      } catch (erro) {
+        console.error(
+          "Erro ao alterar responsável:",
+          erro
+        );
+
+        seletor.value = valorAnterior;
+
+        alert(
+          "Não foi possível alterar o responsável."
+        );
+      } finally {
+        seletor.disabled = false;
+      }
+    }
+  );
+
+  celula.replaceChildren(seletor);
+
+  return celula;
+}
+
+// ==========================================
+// MONTAR AS LINHAS DOS PROCESSOS
+// ==========================================
 
 function criarLinha(processo) {
   const linha = document.createElement("tr");
@@ -390,89 +578,121 @@ function criarLinha(processo) {
     linha.classList.add("concluida");
   }
 
- 
-adicionarCelulaEditavel(
-  linha,
-  processo,
-  "numero_processo"
-);
-
-adicionarCelulaEditavel(
-  linha,
-  processo,
-  "origem"
-);
-
-adicionarCelulaEditavel(
-  linha,
-  processo,
-  "cliente"
-);
-adicionarCelulaData(linha, processo, "publicacao");
-
-adicionarCelulaData(linha, processo, "data_limite");
-
-adicionarCelulaData(linha, processo, "vencimento");
-
- 
+  // 1. Processo
   adicionarCelulaEditavel(
-  linha,
-  processo,
-  "observacao"
-);
-
-  adicionarCelula(
     linha,
-    processo.bonavere_responsaveis?.nome || "—"
+    processo,
+    "numero_processo"
   );
 
+  // 2. Tribunal
+  adicionarCelulaEditavel(
+    linha,
+    processo,
+    "origem"
+  );
+
+  // 3. Cliente
+  adicionarCelulaEditavel(
+    linha,
+    processo,
+    "cliente"
+  );
+
+  // 4. Publicacao
+  adicionarCelulaData(
+    linha,
+    processo,
+    "publicacao"
+  );
+
+  // 5. Data limite
+  adicionarCelulaData(
+    linha,
+    processo,
+    "data_limite"
+  );
+
+  // 6. Vencimento
+  adicionarCelulaData(
+    linha,
+    processo,
+    "vencimento"
+  );
+
+  // 7. Observacao
+  adicionarCelulaEditavel(
+    linha,
+    processo,
+    "observacao"
+  );
+
+  // 8. Responsavel - agora editavel
+  adicionarCelulaResponsavel(
+    linha,
+    processo
+  );
+
+  // 9. Tipo - somente leitura nesta etapa
   adicionarCelula(
     linha,
     processo.bonavere_tipos?.nome || "—"
   );
 
- const celulaSituacao = document.createElement("td");
+  // 10. Situacao
+  const celulaSituacao =
+    document.createElement("td");
 
-if (podeEditar) {
-  const seletor = document.createElement("select");
+  if (podeEditar) {
+    const seletor =
+      document.createElement("select");
 
-  seletor.className = "seletor-situacao";
-  seletor.setAttribute(
-    "aria-label",
-    "Situação do processo " +
-      (processo.numero_processo || "")
-  );
+    seletor.className = "seletor-situacao";
 
-  for (const [valor, descricao] of Object.entries(situacoes)) {
-    const opcao = document.createElement("option");
-    opcao.value = valor;
-    opcao.textContent = descricao;
-    seletor.appendChild(opcao);
+    seletor.setAttribute(
+      "aria-label",
+      "Situação do processo " +
+        (processo.numero_processo || "")
+    );
+
+    for (
+      const [valor, descricao]
+      of Object.entries(situacoes)
+    ) {
+      const opcao =
+        document.createElement("option");
+
+      opcao.value = valor;
+      opcao.textContent = descricao;
+
+      seletor.appendChild(opcao);
+    }
+
+    seletor.value = processo.status;
+
+    seletor.addEventListener(
+      "change",
+      () => alterarSituacao(processo, seletor)
+    );
+
+    celulaSituacao.appendChild(seletor);
+  } else {
+    celulaSituacao.textContent =
+      situacoes[processo.status] ||
+      processo.status;
   }
 
-  seletor.value = processo.status;
-
-  seletor.addEventListener("change", async () => {
-    await alterarSituacao(processo, seletor);
-  });
-
-  celulaSituacao.appendChild(seletor);
-} else {
-  celulaSituacao.textContent =
-    situacoes[processo.status] || processo.status;
-}
-
-linha.appendChild(celulaSituacao);
+  linha.appendChild(celulaSituacao);
 
   return linha;
 }
 
 // ==========================================
-// ORGANIZACAO DOS PROCESSOS
+// ORDENAR PROCESSOS EM ABERTO
 // ==========================================
 
 function ordenarAbertos(a, b) {
-  // Sem data limite: primeiro.
+  // Sem data limite vem primeiro.
   if (!a.data_limite && b.data_limite) {
     return -1;
   }
@@ -481,15 +701,19 @@ function ordenarAbertos(a, b) {
     return 1;
   }
 
-  // Data limite mais proxima: primeiro.
+  // Datas mais proximas primeiro.
   if (a.data_limite && b.data_limite) {
     const diferenca =
-      a.data_limite.localeCompare(b.data_limite);
+      a.data_limite.localeCompare(
+        b.data_limite
+      );
 
-    if (diferenca !== 0) return diferenca;
+    if (diferenca !== 0) {
+      return diferenca;
+    }
   }
 
-  // Desempate pela data de vencimento.
+  // Desempate pelo vencimento.
   if (!a.vencimento && b.vencimento) {
     return 1;
   }
@@ -500,27 +724,31 @@ function ordenarAbertos(a, b) {
 
   if (a.vencimento && b.vencimento) {
     const diferenca =
-      a.vencimento.localeCompare(b.vencimento);
+      a.vencimento.localeCompare(
+        b.vencimento
+      );
 
-    if (diferenca !== 0) return diferenca;
+    if (diferenca !== 0) {
+      return diferenca;
+    }
   }
 
-  return a.criado_em.localeCompare(b.criado_em);
+  return a.criado_em.localeCompare(
+    b.criado_em
+  );
 }
+
+// ==========================================
+// MOSTRAR PROCESSOS ABERTOS E FECHADOS
+// ==========================================
 
 function mostrarProcessos(processos) {
   const abertos = processos
-    .filter(processo =>
-      processo.status === "aberta" ||
-      processo.status === "em_processo"
-    )
+    .filter(processo => !encerrado(processo))
     .sort(ordenarAbertos);
 
   const fechados = processos
-    .filter(processo =>
-      processo.status === "concluida" ||
-      processo.status === "nada_a_fazer"
-    )
+    .filter(encerrado)
     .sort((a, b) =>
       b.atualizado_em.localeCompare(
         a.atualizado_em
@@ -562,7 +790,15 @@ function mostrarProcessos(processos) {
   totalFechados.textContent =
     `${fechados.length} registro(s)`;
 }
-async function alterarSituacao(processo, seletor) {
+
+// ==========================================
+// ALTERAR SITUACAO DO PROCESSO
+// ==========================================
+
+async function alterarSituacao(
+  processo,
+  seletor
+) {
   if (!podeEditar || !usuarioAtual) {
     seletor.value = processo.status;
     return;
@@ -606,12 +842,11 @@ async function alterarSituacao(processo, seletor) {
 
     if (!data || data.length !== 1) {
       throw new Error(
-        "A alteração não foi confirmada pelo banco."
+        "O banco não confirmou a alteração de situação."
       );
     }
 
     await carregarProcessos();
-
   } catch (erro) {
     console.error(
       "Erro ao alterar situação:",
@@ -621,13 +856,30 @@ async function alterarSituacao(processo, seletor) {
     seletor.value = processo.status;
 
     alert(
-      "Não foi possível alterar a situação. " +
-      "Verifique o Console do navegador."
+      "Não foi possível alterar a situação."
     );
   } finally {
     seletor.disabled = false;
   }
 }
+
+// ==========================================
+// CARREGAR RESPONSAVEIS DO SUPABASE
+// ==========================================
+
+async function carregarResponsaveis() {
+  const { data, error } = await clienteSupabase
+    .from("bonavere_responsaveis")
+    .select("id, nome, ativo")
+    .order("nome", {
+      ascending: true
+    });
+
+  if (error) throw error;
+
+  responsaveis = data || [];
+}
+
 // ==========================================
 // CONSULTAR PROCESSOS
 // ==========================================
@@ -644,6 +896,8 @@ async function carregarProcessos() {
       data_limite,
       vencimento,
       observacao,
+      responsavel_id,
+      tipo_id,
       status,
       criado_em,
       atualizado_em,
@@ -661,52 +915,52 @@ async function carregarProcessos() {
 }
 
 // ==========================================
-// VERIFICAR PERMISSAO DE EDICAO
+// VERIFICAR PERMISSAO DO USUARIO
 // ==========================================
 
 async function verificarPermissao() {
   podeEditar = false;
   botaoNovo.disabled = true;
 
-  const { data: perfil, error: erroPerfil } =
+  const { data: perfil, error } =
     await clienteSupabase
       .from("perfis")
       .select("id, master, autorizado")
       .eq("id", usuarioAtual.id)
       .maybeSingle();
 
-  if (erroPerfil) throw erroPerfil;
+  if (error) throw error;
 
-  if (!perfil || !perfil.autorizado) {
+  if (!perfil?.autorizado) {
     return;
   }
 
   if (perfil.master) {
     podeEditar = true;
-    botaoNovo.disabled = false;
-    return;
-  }
-
-  const { data: permissao, error: erroPermissao } =
-    await clienteSupabase
+  } else {
+    const {
+      data: permissao,
+      error: erroPermissao
+    } = await clienteSupabase
       .from("permissoes")
       .select("nivel")
       .eq("user_id", usuarioAtual.id)
       .eq("modulo", "bonavere")
       .maybeSingle();
 
-  if (erroPermissao) throw erroPermissao;
+    if (erroPermissao) {
+      throw erroPermissao;
+    }
 
-  // A autorizacao efetiva continua sendo
-  // validada pelo RLS no banco de dados.
-  if (permissao?.nivel === "editar") {
-    podeEditar = true;
-    botaoNovo.disabled = false;
+    podeEditar =
+      permissao?.nivel === "editar";
   }
+
+  botaoNovo.disabled = !podeEditar;
 }
 
 // ==========================================
-// CARREGAR RESPONSAVEIS E TIPOS
+// PREENCHER LISTAS DO FORMULARIO
 // ==========================================
 
 function preencherSelecao(campo, registros) {
@@ -732,88 +986,79 @@ function preencherSelecao(campo, registros) {
 }
 
 async function carregarOpcoesFormulario() {
-  const [
-    resultadoResponsaveis,
-    resultadoTipos
-  ] = await Promise.all([
-    clienteSupabase
-      .from("bonavere_responsaveis")
-      .select("id, nome")
-      .eq("ativo", true)
-      .order("nome"),
-
-    clienteSupabase
+  const { data: tipos, error } =
+    await clienteSupabase
       .from("bonavere_tipos")
       .select("id, nome")
       .eq("ativo", true)
-      .order("nome")
-  ]);
+      .order("nome");
 
-  if (resultadoResponsaveis.error) {
-    throw resultadoResponsaveis.error;
-  }
-
-  if (resultadoTipos.error) {
-    throw resultadoTipos.error;
-  }
+  if (error) throw error;
 
   preencherSelecao(
     formulario.elements.namedItem(
       "responsavel_id"
     ),
-    resultadoResponsaveis.data || []
+    responsaveis.filter(
+      pessoa => pessoa.ativo
+    )
   );
 
   preencherSelecao(
     formulario.elements.namedItem("tipo_id"),
-    resultadoTipos.data || []
+    tipos || []
   );
 }
 
 // ==========================================
-// ABRIR E FECHAR FORMULARIO
+// ABRIR FORMULARIO DE NOVO PRAZO
 // ==========================================
 
-botaoNovo.addEventListener("click", async () => {
-  if (!podeEditar) return;
+botaoNovo.addEventListener(
+  "click",
+  async () => {
+    if (!podeEditar) return;
 
-  botaoNovo.disabled = true;
+    botaoNovo.disabled = true;
 
-  try {
-    formulario.reset();
+    try {
+      formulario.reset();
 
-    await carregarOpcoesFormulario();
+      await carregarResponsaveis();
+      await carregarOpcoesFormulario();
 
-    botaoSalvar.disabled = false;
+      botaoSalvar.disabled = false;
 
-    modal.showModal();
-  } catch (erro) {
-    console.error(
-      "Erro ao preparar formulário:",
-      erro
-    );
+      modal.showModal();
+    } catch (erro) {
+      console.error(
+        "Erro ao preparar formulário:",
+        erro
+      );
 
-    alert(
-      "Não foi possível carregar o formulário. " +
-      "Verifique o Console do navegador."
-    );
-  } finally {
-    botaoNovo.disabled = !podeEditar;
+      alert(
+        "Não foi possível abrir o cadastro."
+      );
+    } finally {
+      botaoNovo.disabled = !podeEditar;
+    }
   }
-});
+);
 
-botaoCancelar.addEventListener("click", () => {
-  modal.close();
-});
+botaoCancelar.addEventListener(
+  "click",
+  () => modal.close()
+);
 
 // ==========================================
 // CADASTRAR NOVO PRAZO
 // ==========================================
 
 function textoOuNulo(valor) {
-  const texto = String(valor || "").trim();
+  const texto =
+    String(valor || "").trim();
 
-  return texto === "" ? null : texto;
+  return texto || null;
 }
 
 formulario.addEventListener(
@@ -822,7 +1067,9 @@ formulario.addEventListener(
     evento.preventDefault();
 
     if (!podeEditar || !usuarioAtual) {
-      alert("Você não possui permissão de edição.");
+      alert(
+        "Você não possui permissão de edição."
+      );
       return;
     }
 
@@ -874,9 +1121,10 @@ formulario.addEventListener(
     botaoSalvar.textContent = "Salvando...";
 
     try {
-      const { error } = await clienteSupabase
-        .from("bonavere_processos")
-        .insert(novoProcesso);
+      const { error } =
+        await clienteSupabase
+          .from("bonavere_processos")
+          .insert(novoProcesso);
 
       if (error) throw error;
 
@@ -884,16 +1132,17 @@ formulario.addEventListener(
 
       await carregarProcessos();
 
-      alert("Prazo cadastrado com sucesso!");
+      alert(
+        "Prazo cadastrado com sucesso!"
+      );
     } catch (erro) {
       console.error(
-        "Erro ao salvar prazo:",
+        "Erro ao cadastrar prazo:",
         erro
       );
 
       alert(
-        "Não foi possível concluir a operação. " +
-        "Verifique a mensagem no Console."
+        "Não foi possível concluir o cadastro."
       );
     } finally {
       botaoSalvar.disabled = false;
@@ -903,77 +1152,51 @@ formulario.addEventListener(
 );
 
 // ==========================================
-// INICIAR MODULO BONAVERE
+// INICIAR O MODULO BONAVERE
 // ==========================================
 
 async function iniciarBonavere() {
-  if (
-    SUPABASE_PUBLIC_KEY ===
-    "COLE_AQUI_SUA_CHAVE_PUBLISHABLE"
-  ) {
-    mensagemTabela(
-      tabelaAbertos,
-      "Configure a chave pública no bonavere.js."
-    );
-    return;
-  }
-
-  if (!window.supabase) {
-    mensagemTabela(
-      tabelaAbertos,
-      "Não foi possível carregar o Supabase."
-    );
-    return;
-  }
-
-  clienteSupabase =
-    window.supabase.createClient(
-      SUPABASE_URL,
-      SUPABASE_PUBLIC_KEY
-    );
-
   try {
+    if (!window.supabase) {
+      throw new Error(
+        "Biblioteca Supabase indisponível."
+      );
+    }
+
+    clienteSupabase =
+      window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_PUBLIC_KEY
+      );
+
     mensagemTabela(
       tabelaAbertos,
       "Verificando autenticação..."
     );
 
-    const {
-      data: autenticacao,
-      error: erroAuth
-    } = await clienteSupabase.auth.getUser();
+    const { data, error } =
+      await clienteSupabase.auth.getUser();
 
-    if (erroAuth || !autenticacao.user) {
-      window.location.replace("./index.html");
+    if (error || !data.user) {
+      window.location.replace(
+        "./index.html"
+      );
       return;
     }
 
-    usuarioAtual = autenticacao.user;
+    usuarioAtual = data.user;
 
     mensagemTabela(
       tabelaAbertos,
       "Carregando processos..."
     );
 
+    await verificarPermissao();
+    await carregarResponsaveis();
     await carregarProcessos();
-
-    try {
-      await verificarPermissao();
-      await carregarProcessos();
-    } catch (erroPermissao) {
-      // Falha na verificacao nao libera edicao.
-      console.error(
-        "Erro ao verificar permissão:",
-        erroPermissao
-      );
-
-      podeEditar = false;
-      botaoNovo.disabled = true;
-    }
-
   } catch (erro) {
     console.error(
-      "Erro ao carregar Bonavere:",
+      "Erro ao iniciar Bonavere:",
       erro
     );
 
@@ -986,6 +1209,8 @@ async function iniciarBonavere() {
       tabelaFechados,
       "Carregamento indisponível."
     );
+
+    botaoNovo.disabled = true;
   }
 }
 
