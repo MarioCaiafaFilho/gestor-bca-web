@@ -398,20 +398,11 @@ adicionarCelulaEditavel(
   processo,
   "cliente"
 );
-adicionarCelula(
-  linha,
-  formatarData(processo.publicacao)
-);
+adicionarCelulaData(linha, processo, "publicacao");
 
-adicionarCelula(
-  linha,
-  formatarData(processo.data_limite)
-);
+adicionarCelulaData(linha, processo, "data_limite");
 
-  const celulaVencimento = adicionarCelula(
-    linha,
-    formatarData(processo.vencimento)
-  );
+adicionarCelulaData(linha, processo, "vencimento");
 
   aplicarCorVencimento(
     celulaVencimento,
