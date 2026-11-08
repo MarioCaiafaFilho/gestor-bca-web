@@ -18,6 +18,9 @@ const moduloBonavere =
 const botaoSair =
   document.getElementById("sair");
 
+  const moduloAdmin =
+  document.getElementById("moduloAdmin");
+
 let supabaseMenu = null;
 
 async function iniciarMenu() {
@@ -56,7 +59,9 @@ async function iniciarMenu() {
         .maybeSingle();
 
     if (erroPerfil) throw erroPerfil;
-
+if (perfil?.master === true && perfil.autorizado === true) {
+  moduloAdmin.classList.remove("oculto");
+}
     if (!perfil || !perfil.autorizado) {
       mensagem.textContent =
         "Sua conta não está autorizada a acessar os módulos.";

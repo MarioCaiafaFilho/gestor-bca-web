@@ -1,0 +1,92 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+  <title>Administração | Gestor BCA</title>
+
+  <link rel="stylesheet" href="./css/admin.css">
+</head>
+
+<body>
+
+  <header class="cabecalho">
+    <img
+      src="./logo-bca-recortado.png"
+      alt="Bonavere & Caiafa"
+      class="logo"
+    >
+
+    <a href="./menu.html" class="voltar-menu">
+      ← Voltar ao menu
+    </a>
+  </header>
+
+  <main class="conteudo">
+
+    <p class="subtitulo">GESTOR BCA</p>
+    <h1>Painel Administrativo</h1>
+
+    <p class="descricao">
+      Gerencie as configurações e os cadastros
+      do sistema.
+    </p>
+
+    <p id="mensagemAdmin" role="status">
+      Verificando acesso administrativo...
+    </p>
+
+    <section id="painelMaster" class="oculto">
+
+      <div class="grade">
+
+        <article class="cartao">
+          <h2>Responsáveis</h2>
+          <p>
+            Cadastro e manutenção dos profissionais
+            responsáveis pelos processos.
+          </p>
+          <span>Cadastro em preparação</span>
+        </article>
+
+        <article class="cartao">
+          <h2>Tipos de atividades</h2>
+          <p>
+            Cadastro das atividades jurídicas
+            utilizadas no Bonavere.
+          </p>
+          <span>Cadastro em preparação</span>
+        </article>
+
+        <article class="cartao">
+          <h2>Valores das atividades</h2>
+          <p>
+            Definição e atualização dos valores
+            financeiros, exclusivos do Master.
+          </p>
+          <span>Configuração em preparação</span>
+        </article>
+
+        <article class="cartao">
+          <h2>Usuários e permissões</h2>
+          <p>
+            Administração das contas autorizadas
+            e seus níveis de acesso.
+          </p>
+          <span>Configuração em preparação</span>
+        </article>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <script src="./js/admin.js" defer></script>
+
+</body>
+</html>
