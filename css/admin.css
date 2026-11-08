@@ -131,3 +131,120 @@ h1 {
     font-size: 26px;
   }
 }
+
+/* ==========================================
+   PAINEL ADMINISTRATIVO - RESPONSAVEIS
+   ========================================== */
+
+.form-responsavel {
+  margin-top: 22px;
+}
+
+.form-responsavel label {
+  display: block;
+  margin-bottom: 9px;
+  color: #344b65;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.linha-formulario {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.linha-formulario input {
+  flex: 1;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid #ccd9e7;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #25364a;
+  font-size: 14px;
+}
+
+.linha-formulario input:focus {
+  outline: none;
+  border-color: #1765a3;
+  box-shadow: 0 0 0 3px rgba(23, 101, 163, 0.12);
+}
+
+.linha-formulario button {
+  padding: 12px 17px;
+  border: none;
+  border-radius: 8px;
+  background: #1765a3;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.linha-formulario button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+#mensagemResponsavel {
+  min-height: 18px;
+  margin: 12px 0;
+  font-size: 13px;
+}
+
+.cartao h3 {
+  margin: 25px 0 12px;
+  color: #08345f;
+  font-size: 16px;
+}
+
+#listaResponsaveis {
+  max-height: 320px;
+  overflow-y: auto;
+  color: #526c86;
+  font-size: 13px;
+}
+
+.item-responsavel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #e3eaf2;
+}
+
+.item-responsavel.inativo {
+  opacity: 0.55;
+}
+
+.acoes-responsavel {
+  display: flex;
+  gap: 8px;
+}
+
+.acoes-responsavel button {
+  padding: 7px 10px;
+  border: 1px solid #ccd9e7;
+  border-radius: 7px;
+  background: white;
+  color: #08345f;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.acoes-responsavel button:hover {
+  background: #edf4fb;
+}
+
+@media (max-width: 600px) {
+  .linha-formulario {
+    flex-direction: column;
+  }
+
+  .item-responsavel {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

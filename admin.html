@@ -44,13 +44,40 @@
       <div class="grade">
 
         <article class="cartao">
-          <h2>Responsáveis</h2>
-          <p>
-            Cadastro e manutenção dos profissionais
-            responsáveis pelos processos.
-          </p>
-          <span>Cadastro em preparação</span>
-        </article>
+  <h2>Responsáveis</h2>
+
+  <p>
+    Cadastre e gerencie os responsáveis
+    pelas atividades do Bonavere.
+  </p>
+
+  <form id="formResponsavel" class="form-responsavel">
+    <label for="nomeResponsavel">Nome do responsável</label>
+
+    <div class="linha-formulario">
+      <input
+        type="text"
+        id="nomeResponsavel"
+        name="nome"
+        maxlength="150"
+        placeholder="Digite o nome"
+        required
+      >
+
+      <button type="submit" id="salvarResponsavel">
+        Cadastrar
+      </button>
+    </div>
+  </form>
+
+  <p id="mensagemResponsavel" role="status"></p>
+
+  <h3>Responsáveis cadastrados</h3>
+
+  <div id="listaResponsaveis">
+    Nenhum responsável carregado.
+  </div>
+</article>
 
         <article class="cartao">
           <h2>Tipos de atividades</h2>
