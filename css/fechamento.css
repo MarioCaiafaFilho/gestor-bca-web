@@ -1,0 +1,229 @@
+
+/* ==========================================
+   GESTOR BCA - FECHAMENTO MENSAL
+   ========================================== */
+
+/* Filtros do fechamento */
+
+.filtros-fechamento {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 18px;
+  margin-top: 20px;
+}
+
+.filtros-fechamento > div {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1 1 190px;
+}
+
+.filtros-fechamento label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #163b63;
+}
+
+.filtros-fechamento input,
+.filtros-fechamento select {
+  width: 100%;
+  min-height: 42px;
+  padding: 10px 12px;
+  border: 1px solid #cbd9e8;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #12375d;
+  font: inherit;
+  box-sizing: border-box;
+}
+
+.filtros-fechamento input:focus,
+.filtros-fechamento select:focus {
+  outline: 2px solid #9bc5ed;
+  outline-offset: 1px;
+}
+
+#botaoConsultar {
+  min-height: 42px;
+  padding: 10px 22px;
+  border: none;
+  border-radius: 8px;
+  background: #1765a3;
+  color: #ffffff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+#botaoConsultar:hover {
+  background: #104d80;
+}
+
+#botaoConsultar:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+/* Indicadores financeiros */
+
+.resumo-fechamento {
+  display: grid;
+  grid-template-columns: repeat(
+    4,
+    minmax(0, 1fr)
+  );
+  gap: 16px;
+  margin: 22px 0;
+}
+
+.resumo-fechamento .indicador {
+  min-width: 0;
+  padding: 20px;
+}
+
+.resumo-fechamento .indicador h2 {
+  margin: 0 0 12px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #56718e;
+}
+
+.resumo-fechamento .indicador strong {
+  display: block;
+  font-size: clamp(20px, 2vw, 27px);
+  color: #08345f;
+  overflow-wrap: anywhere;
+}
+
+/* Separacao entre secoes */
+
+#painelFechamento > .cartao {
+  margin-bottom: 22px;
+}
+
+/* Tabelas com rolagem horizontal */
+
+.tabela-rolagem {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  margin-top: 18px;
+  border: 1px solid #e0e8f1;
+  border-radius: 9px;
+}
+
+.tabela-rolagem table {
+  width: 100%;
+  min-width: 650px;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+#tabelaLancamentos {
+  min-width: 1220px;
+}
+
+.tabela-rolagem th,
+.tabela-rolagem td {
+  padding: 13px 14px;
+  border-bottom: 1px solid #e2e9f2;
+  text-align: left;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.tabela-rolagem th {
+  background: #eaf1f8;
+  color: #08345f;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.tabela-rolagem td {
+  color: #294766;
+}
+
+.tabela-rolagem tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.tabela-rolagem tbody tr:hover {
+  background: #f4f8fd;
+}
+
+/* Destacar valores */
+
+.valor-financeiro {
+  font-weight: 600;
+  color: #08345f;
+}
+
+.situacao-pago {
+  color: #237444;
+  font-weight: 600;
+}
+
+.situacao-pendente {
+  color: #b45309;
+  font-weight: 600;
+}
+
+/* Botoes das atividades */
+
+.botao-editar-lancamento {
+  padding: 8px 12px;
+  border: 1px solid #b9cfe4;
+  border-radius: 7px;
+  background: #ffffff;
+  color: #1765a3;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.botao-editar-lancamento:hover {
+  background: #e9f3fc;
+}
+
+/* Responsividade */
+
+@media (max-width: 1000px) {
+  .resumo-fechamento {
+    grid-template-columns: repeat(
+      2,
+      minmax(0, 1fr)
+    );
+  }
+}
+
+@media (max-width: 600px) {
+  .filtros-fechamento {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filtros-fechamento > div {
+    width: 100%;
+    flex: none;
+  }
+
+  #botaoConsultar {
+    width: 100%;
+  }
+
+  .resumo-fechamento {
+    grid-template-columns: 1fr;
+  }
+
+  .resumo-fechamento .indicador {
+    padding: 16px;
+  }
+
+  .tabela-rolagem th,
+  .tabela-rolagem td {
+    padding: 11px;
+  }
+}
