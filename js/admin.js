@@ -341,53 +341,259 @@ async function alterarAtividadeResponsavel(responsavel) {
 // LISTAR TIPOS DE ATIVIDADES
 // ==========================================
 
+
+ // ==========================================
+ // LISTAR TIPOS DE ATIVIDADES E VALORES
+ // ==========================================
+
 async function carregarTipos() {
   verificarMaster();
 
   listaTipos.textContent =
     "Carregando tipos de atividades...";
 
-  const { data, error } = await clienteSupabase
-    .from("bonavere_tipos")
-    .select("id, nome, ativo")
-    .order("nome", { ascending: true });
+  try {
+    // Busca os tipos de atividades.
+    const { data: tipos, error: erroTipos } =
+      await clienteSupabase
+        .from("bonavere_tipos")
+        .select("id, nome, ativo")
+        .order("nome", { ascending: true });
 
-  if (error) {
+    if (erroTipos) throw erroTipos;
+
+    // Busca os valores financeiros separadamente.
+    // A tabela de precos possui acesso exclusivo
+    // ao Master pelas politicas do Supabase.
+    const { data: precos, error: erroPrecos } =
+      await clienteSupabase
+        .from("bonavere_precos")
+        .select("tipo_id, valor_atual");
+
+    if (erroPrecos) throw erroPrecos;
+
+    const mapaPrecos = new Map();
+
+    for (const preco of precos || []) {
+      mapaPrecos.set(
+        preco.tipo_id,
+        Number(preco.valor_atual)
+      );
+    }
+
+    listaTipos.replaceChildren();
+
+    if (!tipos || tipos.length === 0) {
+      listaTipos.textContent =
+        "Nenhum tipo de atividade cadastrado.";
+      return;
+    }
+
+    for (const tipo of tipos) {
+      const item = document.createElement("div");
+      item.className = "item-responsavel";
+
+      if (!tipo.ativo) {
+        item.classList.add("inativo");
+      }
+
+      const informacoes = document.createElement("div");
+
+      const nome = document.createElement("div");
+      nome.textContent =
+        tipo.nome + (tipo.ativo ? "" : " (Inativo)");
+
+      const valor = mapaPrecos.get(tipo.id);
+
+      const textoValor = document.createElement("small");
+
+      textoValor.textContent = valor === undefined
+        ? "Valor ainda não definido"
+        : "Valor: " + valor.toLocaleString("pt-BR", {
+            style: "currency",
+            currency: "BRL"
+          });
+
+      informacoes.appendChild(nome);
+      informacoes.appendChild(textoValor);
+
+      const acoes = document.createElement("div");
+      acoes.className = "acoes-responsavel";
+
+      const botaoEditar = criarBotao(
+        "Editar",
+        () => editarTipo(tipo, valor)
+      );
+
+      const botaoSituacao = criarBotao(
+        tipo.ativo ? "Desativar" : "Reativar",
+        () => alterarAtividadeTipo(tipo)
+      );
+
+      acoes.appendChild(botaoEditar);
+      acoes.appendChild(botaoSituacao);
+
+      item.appendChild(informacoes);
+      item.appendChild(acoes);
+
+      listaTipos.appendChild(item);
+    }
+
+  } catch (erro) {
     console.error(
-      "Erro ao consultar tipos:",
-      error
+      "Erro ao carregar tipos e valores:",
+      erro
     );
 
     listaTipos.textContent =
-      "Não foi possível carregar os tipos.";
+      "Não foi possível carregar as atividades e seus valores.";
 
-    throw error;
+    throw erro;
   }
+}
 
-  listaTipos.replaceChildren();
 
-  if (!data || data.length === 0) {
-    listaTipos.textContent =
-      "Nenhum tipo de atividade cadastrado.";
+// ==========================================
+// EDITAR NOME E VALOR DA ATIVIDADE
+// ==========================================
+
+async function editarTipo(tipo, valorAtual) {
+  if (!acessoMaster || !clienteSupabase) return;
+
+  const respostaNome = window.prompt(
+    "Nome da atividade:",
+    tipo.nome
+  );
+
+  if (respostaNome === null) return;
+
+  const novoNome = respostaNome.trim();
+
+  if (!validarNome(novoNome)) {
+    alert("Informe um nome com até 150 caracteres.");
     return;
   }
 
-  for (const tipo of data) {
-    const item = document.createElement("div");
+  const valorAnterior = valorAtual === undefined
+    ? ""
+    : valorAtual.toFixed(2).replace(".", ",");
 
-    item.className = "item-responsavel";
+  const respostaValor = window.prompt(
+    "Valor da atividade (R$):",
+    valorAnterior
+  );
 
-    if (!tipo.ativo) {
-      item.classList.add("inativo");
+  if (respostaValor === null) return;
+
+  const textoValor = respostaValor.trim()
+    .replace(",", ".");
+
+  const novoValor = Number(textoValor);
+
+  if (
+    textoValor === "" ||
+    !Number.isFinite(novoValor) ||
+    novoValor < 0 ||
+    novoValor > 9999999999.99 ||
+    Math.abs(
+      novoValor * 100 - Math.round(novoValor * 100)
+    ) > 0.000001
+  ) {
+    alert(
+      "Informe um valor válido com até duas casas decimais."
+    );
+    return;
+  }
+
+  if (
+    novoNome === tipo.nome &&
+    valorAtual !== undefined &&
+    novoValor === valorAtual
+  ) {
+    return;
+  }
+
+  mensagemTipo.textContent =
+    "Salvando alterações...";
+
+  try {
+    const { error } = await clienteSupabase
+      .rpc("bonavere_editar_tipo_com_valor", {
+        p_tipo_id: tipo.id,
+        p_nome: novoNome,
+        p_valor: novoValor
+      });
+
+    if (error) throw error;
+
+    await carregarTipos();
+
+    mensagemTipo.textContent =
+      "Nome e valor atualizados com sucesso!";
+
+  } catch (erro) {
+    console.error(
+      "Erro ao editar atividade:",
+      erro
+    );
+
+    mensagemTipo.textContent =
+      "Não foi possível atualizar a atividade.";
+  }
+}
+
+
+// ==========================================
+// DESATIVAR OU REATIVAR TIPO DE ATIVIDADE
+// ==========================================
+
+async function alterarAtividadeTipo(tipo) {
+  if (!acessoMaster || !clienteSupabase) return;
+
+  const novoEstado = !tipo.ativo;
+
+  const acao = novoEstado
+    ? "reativar"
+    : "desativar";
+
+  const confirmado = window.confirm(
+    `Deseja ${acao} a atividade "${tipo.nome}"?`
+  );
+
+  if (!confirmado) return;
+
+  mensagemTipo.textContent =
+    "Atualizando situação da atividade...";
+
+  try {
+    const { data, error } = await clienteSupabase
+      .from("bonavere_tipos")
+      .update({ ativo: novoEstado })
+      .eq("id", tipo.id)
+      .select("id");
+
+    if (error) throw error;
+
+    if (!data || data.length !== 1) {
+      throw new Error(
+        "Alteração não confirmada pelo banco."
+      );
     }
 
-    const nome = document.createElement("span");
+    await carregarTipos();
 
-    nome.textContent =
-      tipo.nome + (tipo.ativo ? "" : " (Inativo)");
+    mensagemTipo.textContent = novoEstado
+      ? "Atividade reativada com sucesso!"
+      : "Atividade desativada com sucesso!";
 
-    item.appendChild(nome);
-    listaTipos.appendChild(item);
+  } catch (erro) {
+    console.error(
+      "Erro ao alterar situação da atividade:",
+      erro
+    );
+
+    mensagemTipo.textContent =
+      "Não foi possível alterar a situação da atividade.";
   }
 }
 
