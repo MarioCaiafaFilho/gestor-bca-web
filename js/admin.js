@@ -44,6 +44,8 @@ const formTipo =
 
 const nomeTipo =
   document.getElementById("nomeTipo");
+const valorTipo =
+  document.getElementById("valorTipo");
 
 const salvarTipo =
   document.getElementById("salvarTipo");
@@ -393,10 +395,86 @@ async function carregarTipos() {
 // CADASTRAR TIPO DE ATIVIDADE
 // ==========================================
 
+f
 formTipo.addEventListener(
   "submit",
   async (evento) => {
     evento.preventDefault();
+
+    if (!acessoMaster || !clienteSupabase) {
+      mensagemTipo.textContent =
+        "Você não possui autorização.";
+      return;
+    }
+
+    const nome = nomeTipo.value.trim();
+    const valorInformado = valorTipo.value.trim();
+    const valor = Number(valorInformado);
+
+    if (!validarNome(nome)) {
+      mensagemTipo.textContent =
+        "Informe uma atividade com até 150 caracteres.";
+      return;
+    }
+
+    if (
+      valorInformado === "" ||
+      !Number.isFinite(valor) ||
+      valor < 0 ||
+      valor > 9999999999.99 ||
+      !Number.isInteger(Math.round(valor * 100)) ||
+      Math.abs(valor * 100 - Math.round(valor * 100)) > 0.000001
+    ) {
+      mensagemTipo.textContent =
+        "Informe um valor válido em reais, com até duas casas decimais.";
+      return;
+    }
+
+    salvarTipo.disabled = true;
+    salvarTipo.textContent = "Salvando...";
+
+    mensagemTipo.textContent = "";
+
+    try {
+      // A função do Supabase cadastra o nome
+      // e o valor na mesma transação.
+      const { data, error } = await clienteSupabase
+        .rpc("bonavere_cadastrar_tipo_com_valor", {
+          p_nome: nome,
+          p_valor: valor
+        });
+
+      if (error) throw error;
+
+      if (!data) {
+        throw new Error(
+          "O cadastro não foi confirmado pelo banco."
+        );
+      }
+
+      nomeTipo.value = "";
+      valorTipo.value = "";
+
+      await carregarTipos();
+
+      mensagemTipo.textContent =
+        "Atividade e valor cadastrados com sucesso!";
+
+    } catch (erro) {
+      console.error(
+        "Erro ao cadastrar atividade com valor:",
+        erro
+      );
+
+      mensagemTipo.textContent =
+        "Não foi possível cadastrar a atividade. Verifique os dados ou consulte o console.";
+    } finally {
+      salvarTipo.disabled = false;
+      salvarTipo.textContent = "Cadastrar";
+    }
+  }
+);
+
 
     if (!acessoMaster) {
       mensagemTipo.textContent =
