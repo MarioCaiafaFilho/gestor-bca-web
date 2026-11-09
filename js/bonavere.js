@@ -574,6 +574,106 @@ function adicionarCelulaSelecao(
 // MONTAR LINHAS DA PLANILHA
 // ==========================================
 
+function adicionarCelulaObservacao(linha, processo) {
+  const celula = adicionarCelula(
+    linha,
+    processo.observacao || "—"
+  );
+
+  celula.classList.add("observacao-celula");
+  celula.title = "Clique para visualizar a observação";
+
+  celula.addEventListener("click", () => {
+    const podeAlterar = podeEditarCampos(processo);
+
+    const janela = document.createElement("dialog");
+    janela.className = "janela-observacao";
+
+    const titulo = document.createElement("h2");
+    titulo.textContent = "Observação do processo";
+
+    const identificacao = document.createElement("p");
+    identificacao.className = "identificacao-observacao";
+    identificacao.textContent =
+      processo.numero_processo || "Processo sem número";
+
+    const campo = document.createElement("textarea");
+    campo.className = "texto-observacao";
+    campo.value = processo.observacao || "";
+    campo.readOnly = !podeAlterar;
+
+    const acoes = document.createElement("div");
+    acoes.className = "acoes-observacao";
+
+    const botaoFechar = document.createElement("button");
+    botaoFechar.type = "button";
+    botaoFechar.textContent = "Fechar";
+
+    acoes.appendChild(botaoFechar);
+
+    botaoFechar.addEventListener("click", () => {
+      janela.close();
+    });
+
+    if (podeAlterar) {
+      const botaoSalvar = document.createElement("button");
+      botaoSalvar.type = "button";
+      botaoSalvar.className = "salvar-observacao";
+      botaoSalvar.textContent = "Salvar alterações";
+
+      acoes.appendChild(botaoSalvar);
+
+      botaoSalvar.addEventListener("click", async () => {
+        const novoTexto = campo.value.trim();
+        const textoAnterior = processo.observacao || "";
+
+        if (novoTexto === textoAnterior) {
+          janela.close();
+          return;
+        }
+
+        botaoSalvar.disabled = true;
+        botaoSalvar.textContent = "Salvando...";
+
+        try {
+          await atualizarCampo(
+            processo,
+            "observacao",
+            novoTexto || null
+          );
+
+          janela.close();
+        } catch (erro) {
+          console.error(
+            "Erro ao salvar observação:",
+            erro
+          );
+
+          alert("Não foi possível salvar a observação.");
+
+          botaoSalvar.disabled = false;
+          botaoSalvar.textContent = "Salvar alterações";
+        }
+      });
+    }
+
+    janela.appendChild(titulo);
+    janela.appendChild(identificacao);
+    janela.appendChild(campo);
+    janela.appendChild(acoes);
+
+    document.body.appendChild(janela);
+
+    janela.addEventListener("close", () => {
+      janela.remove();
+    });
+
+    janela.showModal();
+  });
+
+  return celula;
+}
+
 function criarLinha(processo) {
   const linha = document.createElement("tr");
 
@@ -627,13 +727,8 @@ function criarLinha(processo) {
     "vencimento"
   );
 
-  // 7. Observacao
-  adicionarCelulaEditavel(
-    linha,
-    processo,
-    "observacao"
-  );
-
+  // 7. Observacao - janela de visualizacao e edicao
+adicionarCelulaObservacao(linha, processo);
   // 8. Responsavel
   adicionarCelulaSelecao(
     linha,
