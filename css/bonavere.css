@@ -487,3 +487,95 @@ table .entrada-celula {
 table td:nth-child(7) {
   cursor: default;
 }
+
+/* ==========================================
+   BONAVERE - JANELA DE OBSERVACOES
+   ========================================== */
+
+.observacao-celula {
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.observacao-celula:hover {
+  background-color: #e4f0fc;
+  text-decoration: underline;
+}
+
+.janela-observacao {
+  width: min(750px, 94vw);
+  max-height: 90vh;
+  padding: 28px;
+  border: 1px solid #dce5ef;
+  border-radius: 16px;
+  background: #ffffff;
+  color: #08345f;
+  box-shadow: 0 15px 50px rgba(8, 52, 95, 0.20);
+}
+
+.janela-observacao::backdrop {
+  background: rgba(8, 28, 55, 0.55);
+}
+
+.janela-observacao h2 {
+  margin: 0 0 10px;
+  font-size: 22px;
+}
+
+.identificacao-observacao {
+  margin: 0 0 20px;
+  color: #66788e;
+  font-size: 14px;
+}
+
+.texto-observacao {
+  display: block;
+  width: 100%;
+  min-height: 250px;
+  max-height: 55vh;
+  padding: 15px;
+  border: 1px solid #ccd9e7;
+  border-radius: 9px;
+  background: white;
+  color: #25364a;
+  font-family: inherit;
+  font-size: 15px;
+  line-height: 1.6;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.texto-observacao:read-only {
+  background: #f7f9fc;
+  resize: none;
+}
+
+.acoes-observacao {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.acoes-observacao button {
+  padding: 11px 18px;
+  border: 1px solid #ccd9e7;
+  border-radius: 8px;
+  background: white;
+  color: #08345f;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.acoes-observacao .salvar-observacao {
+  background: #1765a3;
+  border-color: #1765a3;
+  color: white;
+}
+
+.acoes-observacao button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
