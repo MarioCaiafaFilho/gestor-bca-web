@@ -395,7 +395,10 @@ async function carregarTipos() {
 // CADASTRAR TIPO DE ATIVIDADE
 // ==========================================
 
-f
+ // ==========================================
+ // CADASTRAR TIPO DE ATIVIDADE
+ // ==========================================
+
 formTipo.addEventListener(
   "submit",
   async (evento) => {
@@ -422,7 +425,6 @@ formTipo.addEventListener(
       !Number.isFinite(valor) ||
       valor < 0 ||
       valor > 9999999999.99 ||
-      !Number.isInteger(Math.round(valor * 100)) ||
       Math.abs(valor * 100 - Math.round(valor * 100)) > 0.000001
     ) {
       mensagemTipo.textContent =
@@ -432,12 +434,9 @@ formTipo.addEventListener(
 
     salvarTipo.disabled = true;
     salvarTipo.textContent = "Salvando...";
-
     mensagemTipo.textContent = "";
 
     try {
-      // A função do Supabase cadastra o nome
-      // e o valor na mesma transação.
       const { data, error } = await clienteSupabase
         .rpc("bonavere_cadastrar_tipo_com_valor", {
           p_nome: nome,
@@ -468,6 +467,7 @@ formTipo.addEventListener(
 
       mensagemTipo.textContent =
         "Não foi possível cadastrar a atividade. Verifique os dados ou consulte o console.";
+
     } finally {
       salvarTipo.disabled = false;
       salvarTipo.textContent = "Cadastrar";
@@ -475,64 +475,6 @@ formTipo.addEventListener(
   }
 );
 
-
-    if (!acessoMaster) {
-      mensagemTipo.textContent =
-        "Você não possui autorização.";
-      return;
-    }
-
-    const nome = nomeTipo.value.trim();
-
-    if (!validarNome(nome)) {
-      mensagemTipo.textContent =
-        "Informe uma atividade com até 150 caracteres.";
-      return;
-    }
-
-    salvarTipo.disabled = true;
-    salvarTipo.textContent = "Salvando...";
-
-    mensagemTipo.textContent = "";
-
-    try {
-      const { data, error } = await clienteSupabase
-        .from("bonavere_tipos")
-        .insert({
-          nome,
-          ativo: true
-        })
-        .select("id");
-
-      if (error) throw error;
-
-      if (!data || data.length !== 1) {
-        throw new Error(
-          "Cadastro não confirmado pelo banco."
-        );
-      }
-
-      nomeTipo.value = "";
-
-      mensagemTipo.textContent =
-        "Tipo de atividade cadastrado com sucesso!";
-
-      await carregarTipos();
-
-    } catch (erro) {
-      console.error(
-        "Erro ao cadastrar tipo:",
-        erro
-      );
-
-      mensagemTipo.textContent =
-        "Não foi possível cadastrar a atividade.";
-    } finally {
-      salvarTipo.disabled = false;
-      salvarTipo.textContent = "Cadastrar";
-    }
-  }
-);
 
 // ==========================================
 // VERIFICAR ACESSO MASTER
