@@ -382,3 +382,108 @@ td.vazio {
 .voltar-menu:hover {
   background: #edf4fb;
 }
+
+/* ==========================================
+   BONAVERE - TABELAS COMPACTAS
+   ========================================== */
+
+/* Rolagem horizontal quando necessaria */
+table {
+  width: 100%;
+  min-width: 1430px;
+  table-layout: fixed;
+}
+
+/* Mantem os titulos em uma unica linha */
+table th {
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+/* Padroniza as celulas */
+table td {
+  white-space: nowrap;
+  vertical-align: middle;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Processo */
+table th:nth-child(1),
+table td:nth-child(1) {
+  width: 145px;
+}
+
+/* Tribunal */
+table th:nth-child(2),
+table td:nth-child(2) {
+  width: 75px;
+}
+
+/* Cliente */
+table th:nth-child(3),
+table td:nth-child(3) {
+  width: 160px;
+}
+
+/* Publicacao */
+table th:nth-child(4),
+table td:nth-child(4) {
+  width: 105px;
+}
+
+/* Data limite */
+table th:nth-child(5),
+table td:nth-child(5) {
+  width: 105px;
+}
+
+/* Vencimento */
+table th:nth-child(6),
+table td:nth-child(6) {
+  width: 105px;
+}
+
+/* Observacao - mais larga */
+table th:nth-child(7),
+table td:nth-child(7) {
+  width: 280px;
+}
+
+/* Responsavel */
+table th:nth-child(8),
+table td:nth-child(8) {
+  width: 155px;
+}
+
+/* Tipo */
+table th:nth-child(9),
+table td:nth-child(9) {
+  width: 155px;
+}
+
+/* Situacao */
+table th:nth-child(10),
+table td:nth-child(10) {
+  width: 145px;
+}
+
+/* Selecao dentro das celulas */
+table .seletor-situacao {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Campos editaveis */
+table .entrada-celula {
+  width: 100%;
+  min-width: 0;
+}
+
+/* Mostra o texto completo da observacao
+   ao passar o mouse, usando a dica nativa
+   quando a celula possuir atributo title. */
+table td:nth-child(7) {
+  cursor: default;
+}
