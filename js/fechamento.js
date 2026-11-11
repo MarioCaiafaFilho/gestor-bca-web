@@ -255,6 +255,9 @@ async function buscarLancamentos() {
           nome
         )
       `)
+
+.eq("situacao_financeira", "ativa")
+
       .gte("mes_fechamento", inicio)
       .lt("mes_fechamento", fim)
       .order("mes_fechamento", {
