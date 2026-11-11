@@ -54,6 +54,46 @@ const corpoResumo =
 const corpoLancamentos =
   document.getElementById("corpoLancamentos");
 
+const janelaEditarFinanceiro =
+  document.getElementById("janelaEditarFinanceiro");
+
+const formEditarFinanceiro =
+  document.getElementById("formEditarFinanceiro");
+
+const identificacaoLancamento =
+  document.getElementById("identificacaoLancamento");
+
+const editarLancamentoId =
+  document.getElementById("editarLancamentoId");
+
+const editarDataConclusao =
+  document.getElementById("editarDataConclusao");
+
+const editarCompetencia =
+  document.getElementById("editarCompetencia");
+
+const editarMesFechamento =
+  document.getElementById("editarMesFechamento");
+
+const editarValor =
+  document.getElementById("editarValor");
+
+const editarPagamento =
+  document.getElementById("editarPagamento");
+
+const cancelarEdicaoFinanceira =
+  document.getElementById("cancelarEdicaoFinanceira");
+
+const salvarEdicaoFinanceira =
+  document.getElementById("salvarEdicaoFinanceira");
+
+const mensagemEdicaoFinanceira =
+  document.getElementById("mensagemEdicaoFinanceira");
+
+let lancamentoEmEdicao = null;
+let salvandoEdicaoFinanceira = false;
+
+
 // ==========================================
 // FORMATACAO
 // ==========================================
@@ -411,6 +451,195 @@ function atualizarResumo(lancamentos) {
 }
 
 // ==========================================
+// ABRIR EDICAO FINANCEIRA
+// ==========================================
+
+function abrirEdicaoFinanceira(item) {
+  if (!acessoMaster || !clienteSupabase) {
+    return;
+  }
+
+  lancamentoEmEdicao = item;
+
+  const numeroProcesso =
+    item.bonavere_processos?.numero_processo ||
+    "Processo não identificado";
+
+  identificacaoLancamento.textContent =
+    `Processo: ${numeroProcesso} | Ciclo: ${item.ciclo}`;
+
+  editarLancamentoId.value = item.id;
+
+  editarDataConclusao.value =
+    item.data_conclusao || "";
+
+  editarCompetencia.value =
+    item.competencia || "";
+
+  editarMesFechamento.value =
+    item.mes_fechamento
+      ? item.mes_fechamento.substring(0, 7)
+      : "";
+
+  editarValor.value =
+    Number(item.valor_registrado).toFixed(2);
+
+  editarPagamento.value =
+    item.pago_em || "";
+
+  mensagemEdicaoFinanceira.textContent = "";
+
+  janelaEditarFinanceiro.showModal();
+}
+
+
+// ==========================================
+// CANCELAR EDICAO
+// ==========================================
+
+cancelarEdicaoFinanceira.addEventListener(
+  "click",
+  () => {
+    if (salvandoEdicaoFinanceira) return;
+    janelaEditarFinanceiro.close();
+  }
+);
+
+janelaEditarFinanceiro.addEventListener(
+  "cancel",
+  (evento) => {
+    if (salvandoEdicaoFinanceira) {
+      evento.preventDefault();
+    }
+  }
+);
+
+janelaEditarFinanceiro.addEventListener(
+  "close",
+  () => {
+    lancamentoEmEdicao = null;
+  }
+);
+
+
+// ==========================================
+// SALVAR EDICAO FINANCEIRA
+// ==========================================
+
+formEditarFinanceiro.addEventListener(
+  "submit",
+  async (evento) => {
+    evento.preventDefault();
+
+    if (
+      !acessoMaster ||
+      !clienteSupabase ||
+      !lancamentoEmEdicao ||
+      salvandoEdicaoFinanceira
+    ) {
+      return;
+    }
+
+    const dataConclusao =
+      editarDataConclusao.value;
+
+    const competencia =
+      editarCompetencia.value;
+
+    const mesSelecionado =
+      editarMesFechamento.value;
+
+    const valorInformado =
+      editarValor.value.trim();
+
+    const valor = Number(valorInformado);
+
+    const pagamento =
+      editarPagamento.value || null;
+
+    if (
+      !dataConclusao ||
+      !competencia ||
+      !/^\d{4}-(0[1-9]|1[0-2])$/.test(mesSelecionado)
+    ) {
+      mensagemEdicaoFinanceira.textContent =
+        "Preencha corretamente as datas obrigatórias.";
+      return;
+    }
+
+    if (
+      valorInformado === "" ||
+      !Number.isFinite(valor) ||
+      valor < 0 ||
+      valor > 9999999999.99 ||
+      Math.abs(
+        valor * 100 - Math.round(valor * 100)
+      ) > 0.000001
+    ) {
+      mensagemEdicaoFinanceira.textContent =
+        "Informe um valor válido com até duas casas decimais.";
+      return;
+    }
+
+    const mesFechamento =
+      mesSelecionado + "-01";
+
+    salvandoEdicaoFinanceira = true;
+
+    salvarEdicaoFinanceira.disabled = true;
+    cancelarEdicaoFinanceira.disabled = true;
+
+    salvarEdicaoFinanceira.textContent =
+      "Salvando...";
+
+    mensagemEdicaoFinanceira.textContent = "";
+
+    try {
+      const { error } = await clienteSupabase
+        .rpc("bonavere_editar_lancamento", {
+          p_id: lancamentoEmEdicao.id,
+          p_data_conclusao: dataConclusao,
+          p_competencia: competencia,
+          p_mes_fechamento: mesFechamento,
+          p_valor: valor,
+          p_pago_em: pagamento
+        });
+
+      if (error) throw error;
+
+      janelaEditarFinanceiro.close();
+
+      // Se o fechamento mudou de mes,
+      // o registro pode sair do filtro atual.
+      await consultarFechamento();
+
+      mensagemFechamento.textContent =
+        "Alteração financeira salva. Consulta atualizada.";
+
+    } catch (erro) {
+      console.error(
+        "Erro ao salvar edição financeira:",
+        erro
+      );
+
+      mensagemEdicaoFinanceira.textContent =
+        erro?.message ||
+        "Não foi possível salvar as alterações.";
+
+    } finally {
+      salvandoEdicaoFinanceira = false;
+
+      salvarEdicaoFinanceira.disabled = false;
+      cancelarEdicaoFinanceira.disabled = false;
+
+      salvarEdicaoFinanceira.textContent =
+        "Salvar alterações";
+    }
+  }
+);
+
+
+// ==========================================
 // DETALHAMENTO DOS LANCAMENTOS
 // ==========================================
 
@@ -487,12 +716,23 @@ function atualizarDetalhamento(lancamentos) {
         : "situacao-pendente"
     );
 
-    // A edicao financeira sera adicionada
-    // na proxima etapa, com auditoria.
-    criarCelula(
-      linha,
-      "Em preparação"
-    );
+   
+// Botao de edicao financeira, exclusivo do Master.
+
+const celulaAcoes = document.createElement("td");
+
+const botaoEditar = document.createElement("button");
+
+botaoEditar.type = "button";
+botaoEditar.className = "botao-editar-lancamento";
+botaoEditar.textContent = "Editar";
+
+botaoEditar.addEventListener("click", () => {
+  abrirEdicaoFinanceira(item);
+});
+
+celulaAcoes.appendChild(botaoEditar);
+linha.appendChild(celulaAcoes);
 
     corpoLancamentos.appendChild(linha);
   }

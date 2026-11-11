@@ -193,6 +193,103 @@
 
     </section>
 
+<!-- JANELA DE EDICAO FINANCEIRA - MASTER -->
+
+<dialog id="janelaEditarFinanceiro"
+        class="janela-financeira">
+
+  <h2>Editar lançamento financeiro</h2>
+
+  <p id="identificacaoLancamento"></p>
+
+  <form id="formEditarFinanceiro">
+
+    <input
+      type="hidden"
+      id="editarLancamentoId"
+    >
+
+    <label for="editarDataConclusao">
+      Data de conclusão
+    </label>
+
+    <input
+      type="date"
+      id="editarDataConclusao"
+      required
+    >
+
+    <label for="editarCompetencia">
+      Competência
+    </label>
+
+    <input
+      type="date"
+      id="editarCompetencia"
+      required
+    >
+
+    <label for="editarMesFechamento">
+      Mês do fechamento
+    </label>
+
+    <input
+      type="month"
+      id="editarMesFechamento"
+      required
+    >
+
+    <label for="editarValor">
+      Valor da atividade (R$)
+    </label>
+
+    <input
+      type="number"
+      id="editarValor"
+      min="0"
+      step="0.01"
+      required
+    >
+
+    <label for="editarPagamento">
+      Data do pagamento
+    </label>
+
+    <input
+      type="date"
+      id="editarPagamento"
+    >
+
+    <p class="ajuda-financeira">
+      Deixe a data do pagamento vazia
+      enquanto o valor estiver pendente.
+    </p>
+
+    <p id="mensagemEdicaoFinanceira"
+       role="status"></p>
+
+    <div class="acoes-edicao-financeira">
+
+      <button
+        type="button"
+        id="cancelarEdicaoFinanceira"
+      >
+        Cancelar
+      </button>
+
+      <button
+        type="submit"
+        id="salvarEdicaoFinanceira"
+      >
+        Salvar alterações
+      </button>
+
+    </div>
+
+  </form>
+
+</dialog>
+
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
