@@ -1,0 +1,203 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>Fechamento Mensal | Gestor BCA</title>
+
+  <link rel="stylesheet" href="./css/admin.css">
+  <link rel="stylesheet" href="./css/fechamento.css">
+</head>
+
+<body>
+
+  <header class="cabecalho">
+    <img
+      src="./logo-bca-recortado.png"
+      alt="Bonavere & Caiafa"
+      class="logo"
+    >
+
+    <a href="./admin.html" class="voltar-menu">
+      ← Voltar à administração
+    </a>
+  </header>
+
+  <main class="conteudo">
+
+    <p class="subtitulo">GESTOR BCA — BONAVERE</p>
+
+    <h1>Fechamento Mensal</h1>
+
+    <p class="descricao">
+      Acompanhe os valores das atividades,
+      os responsáveis, os meses de fechamento
+      e os pagamentos realizados.
+    </p>
+
+    <p id="mensagemFechamento" role="status">
+      Verificando acesso financeiro...
+    </p>
+
+    <!-- Conteudo exclusivo do Master -->
+    <section id="painelFechamento" class="oculto">
+
+      <!-- FILTROS -->
+
+      <section class="cartao">
+        <h2>Consultar fechamento</h2>
+
+        <div class="filtros-fechamento">
+
+          <div>
+            <label for="filtroMes">
+              Mês do fechamento
+            </label>
+
+            <input
+              type="month"
+              id="filtroMes"
+            >
+          </div>
+
+          <div>
+            <label for="filtroResponsavel">
+              Responsável
+            </label>
+
+            <select id="filtroResponsavel">
+              <option value="">
+                Todos os responsáveis
+              </option>
+            </select>
+          </div>
+
+          <button
+            type="button"
+            id="botaoConsultar"
+          >
+            Consultar
+          </button>
+
+        </div>
+      </section>
+
+      <!-- RESUMO FINANCEIRO -->
+
+      <section class="resumo-fechamento">
+
+        <article class="cartao indicador">
+          <h2>Total das atividades</h2>
+
+          <strong id="totalAtividades">
+            R$ 0,00
+          </strong>
+        </article>
+
+        <article class="cartao indicador">
+          <h2>Total pendente</h2>
+
+          <strong id="totalPendente">
+            R$ 0,00
+          </strong>
+        </article>
+
+        <article class="cartao indicador">
+          <h2>Total pago</h2>
+
+          <strong id="totalPago">
+            R$ 0,00
+          </strong>
+        </article>
+
+        <article class="cartao indicador">
+          <h2>Quantidade de atividades</h2>
+
+          <strong id="quantidadeAtividades">
+            0
+          </strong>
+        </article>
+
+      </section>
+
+      <!-- RESUMO POR RESPONSAVEL -->
+
+      <section class="cartao">
+        <h2>Resumo por responsável</h2>
+
+        <div class="tabela-rolagem">
+          <table id="tabelaResumo">
+            <thead>
+              <tr>
+                <th>Responsável</th>
+                <th>Atividades</th>
+                <th>Total</th>
+                <th>Pendente</th>
+                <th>Pago</th>
+              </tr>
+            </thead>
+
+            <tbody id="corpoResumo">
+              <tr>
+                <td colspan="5">
+                  Nenhum fechamento carregado.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- LANCAMENTOS INDIVIDUAIS -->
+
+      <section class="cartao">
+        <h2>Atividades do fechamento</h2>
+
+        <p>
+          Consulte os lançamentos e faça
+          correções financeiras quando necessário.
+        </p>
+
+        <div class="tabela-rolagem">
+          <table id="tabelaLancamentos">
+            <thead>
+              <tr>
+                <th>Processo</th>
+                <th>Responsável</th>
+                <th>Atividade</th>
+                <th>Valor</th>
+                <th>Conclusão</th>
+                <th>Competência</th>
+                <th>Fechamento</th>
+                <th>Pagamento</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+
+            <tbody id="corpoLancamentos">
+              <tr>
+                <td colspan="9">
+                  Nenhuma atividade carregada.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </section>
+
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+
+  <script src="./js/fechamento.js" defer></script>
+
+</body>
+</html>
