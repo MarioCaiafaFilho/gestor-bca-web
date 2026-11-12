@@ -2,7 +2,7 @@
 "use strict";
 
 // ==========================================
-// GESTOR BCA - LOGIN COM GOOGLE
+// GESTOR BCA - LOGIN GOOGLE
 // ==========================================
 
 const SITE_URL =
@@ -19,6 +19,10 @@ const mensagem =
 
 let clienteLogin = null;
 
+// ==========================================
+// MENSAGENS E CONTROLE DOS BOTOES
+// ==========================================
+
 function mostrarMensagem(texto) {
   mensagem.textContent = texto;
 }
@@ -26,11 +30,12 @@ function mostrarMensagem(texto) {
 function mostrarDesconectado() {
   botaoEntrar.classList.remove("oculto");
   botaoSair.classList.add("oculto");
+
   botaoEntrar.disabled = false;
+  botaoSair.disabled = false;
 
   mostrarMensagem(
-    "Utilize uma conta Google autorizada " +
-    "para acessar o sistema."
+    "Utilize uma conta Google autorizada para acessar o sistema."
   );
 }
 
@@ -38,7 +43,28 @@ function mostrarAutenticado() {
   window.location.replace("./menu.html");
 }
 
-a
+// ==========================================
+// CONTROLE DE VALIDADE DA SESSAO
+// ==========================================
+
+function sessaoDentroDoPrazo() {
+  const ultima =
+    window.GestorBCASessao.obterUltimaAtividade();
+
+  const agora = Date.now();
+
+  return (
+    ultima !== null &&
+    ultima <= agora &&
+    agora - ultima <
+      window.GestorBCASessao.TEMPO_INATIVIDADE
+  );
+}
+
+// ==========================================
+// INICIALIZAR LOGIN
+// ==========================================
+
 async function iniciarLogin() {
   try {
     if (!window.GestorBCASessao) {
@@ -50,13 +76,19 @@ async function iniciarLogin() {
     clienteLogin =
       window.GestorBCASessao.criarCliente();
 
-    mostrarMensagem("Verificando autenticação...");
+    mostrarMensagem(
+      "Verificando autenticação..."
+    );
 
-    // Identifica o retorno do Google.
+    // Identificar retorno da autenticacao Google.
+    const parametros =
+      new URLSearchParams(window.location.search);
+
     const retornoOAuth =
-      new URLSearchParams(window.location.search)
-        .has("code") ||
-      window.location.hash.includes("access_token=");
+      parametros.has("code") ||
+      window.location.hash.includes(
+        "access_token="
+      );
 
     const { data, error } =
       await clienteLogin.auth.getUser();
@@ -66,26 +98,27 @@ async function iniciarLogin() {
       return;
     }
 
-    // Uma autenticação recém-concluída
-    // inicia o controle de inatividade.
+    // Se o Google acabou de autenticar,
+    // registrar o inicio da atividade.
     if (retornoOAuth) {
-      window.GestorBCASessao.registrarAtividade();
+      window.sessionStorage.setItem(
+        "gestor_bca_ultima_atividade",
+        String(Date.now())
+      );
     }
 
-    const ultimaAtividade =
-      window.GestorBCASessao.obterUltimaAtividade();
+    // Nao aceitar sessoes antigas ou expiradas.
+    if (!sessaoDentroDoPrazo()) {
+      const { error: erroSaida } =
+        await clienteLogin.auth.signOut();
 
-    const agora = Date.now();
+      if (erroSaida) {
+        console.error(
+          "Erro ao encerrar sessão anterior:",
+          erroSaida
+        );
+      }
 
-    // Sessão antiga, sem controle de atividade,
-    // ou expirada: exige novo login.
-    if (
-      ultimaAtividade === null ||
-      ultimaAtividade > agora ||
-      agora - ultimaAtividade >=
-        window.GestorBCASessao.TEMPO_INATIVIDADE
-    ) {
-      await clienteLogin.auth.signOut();
       mostrarDesconectado();
       return;
     }
@@ -93,7 +126,10 @@ async function iniciarLogin() {
     mostrarAutenticado();
 
   } catch (erro) {
-    console.error("Erro ao iniciar login:", erro);
+    console.error(
+      "Erro ao iniciar autenticação:",
+      erro
+    );
 
     mostrarMensagem(
       "Não foi possível iniciar a autenticação."
@@ -114,13 +150,17 @@ botaoEntrar.addEventListener(
 
     botaoEntrar.disabled = true;
 
-    mostrarMensagem("Abrindo login Google...");
-    // Marca que o usuário iniciou um novo login.
-window.sessionStorage.removeItem(
-  "gestor_bca_ultima_atividade"
-);
+    mostrarMensagem(
+      "Abrindo login Google..."
+    );
 
     try {
+      // Um login novo nao deve aproveitar
+      // a atividade da sessao anterior.
+      window.sessionStorage.removeItem(
+        "gestor_bca_ultima_atividade"
+      );
+
       const { error } =
         await clienteLogin.auth.signInWithOAuth({
           provider: "google",
@@ -132,7 +172,10 @@ window.sessionStorage.removeItem(
       if (error) throw error;
 
     } catch (erro) {
-      console.error("Erro no login Google:", erro);
+      console.error(
+        "Erro no login Google:",
+        erro
+      );
 
       mostrarMensagem(
         "Não foi possível entrar: " +
@@ -145,7 +188,7 @@ window.sessionStorage.removeItem(
 );
 
 // ==========================================
-// SAIR
+// SAIR DO SISTEMA
 // ==========================================
 
 botaoSair.addEventListener(
@@ -161,10 +204,17 @@ botaoSair.addEventListener(
 
       if (error) throw error;
 
+      window.sessionStorage.removeItem(
+        "gestor_bca_ultima_atividade"
+      );
+
       mostrarDesconectado();
 
     } catch (erro) {
-      console.error("Erro ao sair:", erro);
+      console.error(
+        "Erro ao sair:",
+        erro
+      );
 
       mostrarMensagem(
         "Não foi possível encerrar a sessão."
@@ -176,7 +226,7 @@ botaoSair.addEventListener(
 );
 
 // ==========================================
-// INICIALIZAR
+// INICIAR
 // ==========================================
 
 iniciarLogin();
