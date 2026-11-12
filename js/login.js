@@ -1,153 +1,182 @@
-    /*
-      CONFIGURAÇÃO DO SUPABASE
 
-      Coloque somente a chave pública.
-      Nunca coloque a chave secret ou service_role.
-    */
+"use strict";
 
-    const SUPABASE_URL =
-      "https://pdvipfzbtpsuenpumktb.supabase.co";
+// ==========================================
+// GESTOR BCA - LOGIN COM GOOGLE
+// ==========================================
 
-    const SUPABASE_PUBLIC_KEY =
-      "sb_publishable_IOUb057J98PySmHjKai1Eg_mR4rSIjB";
+const SITE_URL =
+  "https://mariocaiafafilho.github.io/gestor-bca-web/";
 
-    const SITE_URL =
-      "https://mariocaiafafilho.github.io/gestor-bca-web/";
+const botaoEntrar =
+  document.getElementById("botaoEntrar");
 
-    const botaoEntrar =
-      document.getElementById("botaoEntrar");
+const botaoSair =
+  document.getElementById("botaoSair");
 
-    const botaoSair =
-      document.getElementById("botaoSair");
+const mensagem =
+  document.getElementById("mensagem");
 
-    const mensagem =
-      document.getElementById("mensagem");
+let clienteLogin = null;
 
-    function mostrarMensagem(texto) {
-      mensagem.textContent = texto;
-    }
+function mostrarMensagem(texto) {
+  mensagem.textContent = texto;
+}
 
-    function mostrarDesconectado() {
-      botaoEntrar.classList.remove("oculto");
-      botaoSair.classList.add("oculto");
-      botaoEntrar.disabled = false;
+function mostrarDesconectado() {
+  botaoEntrar.classList.remove("oculto");
+  botaoSair.classList.add("oculto");
+  botaoEntrar.disabled = false;
 
-      mostrarMensagem(
-        "Utilize uma conta Google autorizada " +
-        "para acessar o sistema."
+  mostrarMensagem(
+    "Utilize uma conta Google autorizada " +
+    "para acessar o sistema."
+  );
+}
+
+function mostrarAutenticado() {
+  window.location.replace("./menu.html");
+}
+
+a
+async function iniciarLogin() {
+  try {
+    if (!window.GestorBCASessao) {
+      throw new Error(
+        "Configuração de sessão não carregada."
       );
     }
 
-    function mostrarAutenticado(usuario) {
-      window.location.replace("./menu.html");
-return;
-      botaoEntrar.classList.add("oculto");
-      botaoSair.classList.remove("oculto");
+    clienteLogin =
+      window.GestorBCASessao.criarCliente();
 
-      mostrarMensagem(
-        "Conta Google autenticada: " +
-        (usuario.email || "E-mail não disponível") +
-        ". O acesso aos módulos será liberado " +
-        "conforme as permissões do sistema."
-      );
+    mostrarMensagem("Verificando autenticação...");
+
+    // Identifica o retorno do Google.
+    const retornoOAuth =
+      new URLSearchParams(window.location.search)
+        .has("code") ||
+      window.location.hash.includes("access_token=");
+
+    const { data, error } =
+      await clienteLogin.auth.getUser();
+
+    if (error || !data?.user) {
+      mostrarDesconectado();
+      return;
     }
 
+    // Uma autenticação recém-concluída
+    // inicia o controle de inatividade.
+    if (retornoOAuth) {
+      window.GestorBCASessao.registrarAtividade();
+    }
+
+    const ultimaAtividade =
+      window.GestorBCASessao.obterUltimaAtividade();
+
+    const agora = Date.now();
+
+    // Sessão antiga, sem controle de atividade,
+    // ou expirada: exige novo login.
     if (
-      SUPABASE_PUBLIC_KEY ===
-      "scole"
+      ultimaAtividade === null ||
+      ultimaAtividade > agora ||
+      agora - ultimaAtividade >=
+        window.GestorBCASessao.TEMPO_INATIVIDADE
     ) {
-      mostrarMensagem(
-        "Configure a chave pública do Supabase " +
-        "no arquivo index.html."
-      );
-
-    } else if (!window.supabase) {
-      mostrarMensagem(
-        "Não foi possível carregar o Supabase."
-      );
-
-    } else {
-      const cliente = window.supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_PUBLIC_KEY
-      );
-
-      botaoEntrar.addEventListener(
-        "click",
-        async () => {
-          botaoEntrar.disabled = true;
-
-          mostrarMensagem("Abrindo login Google...");
-
-          try {
-            const { error } =
-              await cliente.auth.signInWithOAuth({
-                provider: "google",
-                options: {
-                  redirectTo: SITE_URL
-                }
-              });
-
-            if (error) {
-              throw error;
-            }
-
-          } catch (error) {
-            mostrarMensagem(
-              "Erro ao entrar: " + error.message
-            );
-
-            botaoEntrar.disabled = false;
-          }
-        }
-      );
-
-      botaoSair.addEventListener(
-        "click",
-        async () => {
-          const { error } =
-            await cliente.auth.signOut();
-
-          if (error) {
-            mostrarMensagem(
-              "Erro ao sair: " + error.message
-            );
-
-            return;
-          }
-
-          mostrarDesconectado();
-        }
-      );
-
-      cliente.auth.onAuthStateChange(
-        (_evento, sessao) => {
-          if (sessao?.user) {
-            mostrarAutenticado(sessao.user);
-          } else {
-            mostrarDesconectado();
-          }
-        }
-      );
-
-      async function verificarSessao() {
-        try {
-          const { data, error } =
-            await cliente.auth.getUser();
-
-          if (error || !data.user) {
-            mostrarDesconectado();
-            return;
-          }
-
-          mostrarAutenticado(data.user);
-
-        } catch (error) {
-          mostrarMensagem(
-            "Não foi possível verificar a sessão."
-          );
-        }
-      }
-
-      verificarSessao();
+      await clienteLogin.auth.signOut();
+      mostrarDesconectado();
+      return;
     }
+
+    mostrarAutenticado();
+
+  } catch (erro) {
+    console.error("Erro ao iniciar login:", erro);
+
+    mostrarMensagem(
+      "Não foi possível iniciar a autenticação."
+    );
+
+    botaoEntrar.disabled = true;
+  }
+}
+
+// ==========================================
+// ENTRAR COM GOOGLE
+// ==========================================
+
+botaoEntrar.addEventListener(
+  "click",
+  async () => {
+    if (!clienteLogin) return;
+
+    botaoEntrar.disabled = true;
+
+    mostrarMensagem("Abrindo login Google...");
+    // Marca que o usuário iniciou um novo login.
+window.sessionStorage.removeItem(
+  "gestor_bca_ultima_atividade"
+);
+
+    try {
+      const { error } =
+        await clienteLogin.auth.signInWithOAuth({
+          provider: "google",
+          options: {
+            redirectTo: SITE_URL
+          }
+        });
+
+      if (error) throw error;
+
+    } catch (erro) {
+      console.error("Erro no login Google:", erro);
+
+      mostrarMensagem(
+        "Não foi possível entrar: " +
+        erro.message
+      );
+
+      botaoEntrar.disabled = false;
+    }
+  }
+);
+
+// ==========================================
+// SAIR
+// ==========================================
+
+botaoSair.addEventListener(
+  "click",
+  async () => {
+    if (!clienteLogin) return;
+
+    botaoSair.disabled = true;
+
+    try {
+      const { error } =
+        await clienteLogin.auth.signOut();
+
+      if (error) throw error;
+
+      mostrarDesconectado();
+
+    } catch (erro) {
+      console.error("Erro ao sair:", erro);
+
+      mostrarMensagem(
+        "Não foi possível encerrar a sessão."
+      );
+
+      botaoSair.disabled = false;
+    }
+  }
+);
+
+// ==========================================
+// INICIALIZAR
+// ==========================================
+
+iniciarLogin();

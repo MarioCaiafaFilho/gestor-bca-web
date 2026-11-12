@@ -1,13 +1,11 @@
 
 "use strict";
 
+// ==========================================
 // GESTOR BCA - MENU PRINCIPAL
+// ==========================================
 
-const SUPABASE_URL =
-  "https://pdvipfzbtpsuenpumktb.supabase.co";
-
-const SUPABASE_PUBLIC_KEY =
-  "sb_publishable_IOUb057J98PySmHjKai1Eg_mR4rSIjB";
+// ELEMENTOS DA PAGINA
 
 const mensagem =
   document.getElementById("mensagemMenu");
@@ -15,62 +13,125 @@ const mensagem =
 const moduloBonavere =
   document.getElementById("moduloBonavere");
 
+const moduloAdmin =
+  document.getElementById("moduloAdmin");
+
 const botaoSair =
   document.getElementById("sair");
 
-  const moduloAdmin =
-  document.getElementById("moduloAdmin");
-
 let supabaseMenu = null;
 
+// ==========================================
+// INICIAR MENU
+// ==========================================
+
 async function iniciarMenu() {
+
+  // Os modulos permanecem ocultos
+  // ate a verificacao das permissoes.
+
+  moduloBonavere.classList.add("oculto");
+  moduloAdmin.classList.add("oculto");
+
+  botaoSair.disabled = true;
+
   try {
-    if (
-      SUPABASE_PUBLIC_KEY ===
-      "COLE_AQUI_SUA_CHAVE_PUBLISHABLE"
-    ) {
-      throw new Error("Chave pública não configurada.");
+
+    // Verificar configuracao compartilhada.
+
+    if (!window.GestorBCASessao) {
+      throw new Error(
+        "Configuração de sessão indisponível."
+      );
     }
 
-    if (!window.supabase) {
-      throw new Error("Biblioteca Supabase indisponível.");
-    }
+    supabaseMenu =
+      window.GestorBCASessao.criarCliente();
 
-    supabaseMenu = window.supabase.createClient(
-      SUPABASE_URL,
-      SUPABASE_PUBLIC_KEY
-    );
+    // Confirmar usuario autenticado.
 
     const { data, error } =
       await supabaseMenu.auth.getUser();
 
-    if (error || !data.user) {
+    if (error || !data?.user) {
       window.location.replace("./index.html");
       return;
     }
 
-    botaoSair.disabled = false;
+    // ======================================
+    // VERIFICAR EXPIRACAO DA SESSAO
+    // ======================================
 
-    const { data: perfil, error: erroPerfil } =
-      await supabaseMenu
-        .from("perfis")
-        .select("id, master, autorizado")
-        .eq("id", data.user.id)
-        .maybeSingle();
+    const ultimaAtividade =
+      window.GestorBCASessao.obterUltimaAtividade();
 
-    if (erroPerfil) throw erroPerfil;
-if (perfil?.master === true && perfil.autorizado === true) {
-  moduloAdmin.classList.remove("oculto");
-}
-    if (!perfil || !perfil.autorizado) {
+    const agora = Date.now();
+
+    if (
+      ultimaAtividade === null ||
+      ultimaAtividade > agora ||
+      agora - ultimaAtividade >=
+        window.GestorBCASessao.TEMPO_INATIVIDADE
+    ) {
+      // Sessao antiga ou expirada.
+      // Impede o acesso aos modulos.
+      moduloBonavere.classList.add("oculto");
+      moduloAdmin.classList.add("oculto");
+
       mensagem.textContent =
-        "Sua conta não está autorizada a acessar os módulos.";
+        "Sessão expirada. Faça login novamente.";
+
+      try {
+        await supabaseMenu.auth.signOut();
+      } catch (erroSaida) {
+        console.error(
+          "Erro ao encerrar sessão expirada:",
+          erroSaida
+        );
+      }
+
+      window.location.replace("./index.html");
       return;
     }
 
-    let acessoBonavere = perfil.master === true;
+
+    // Consultar perfil.
+
+    const {
+      data: perfil,
+      error: erroPerfil
+    } = await supabaseMenu
+      .from("perfis")
+      .select("id, master, autorizado")
+      .eq("id", data.user.id)
+      .maybeSingle();
+
+    if (erroPerfil) {
+      throw erroPerfil;
+    }
+
+    if (!perfil || perfil.autorizado !== true) {
+      mensagem.textContent =
+        "Sua conta não está autorizada a acessar os módulos.";
+
+      return;
+    }
+
+    // Acesso Master ao painel administrativo.
+
+    const acessoMaster =
+      perfil.master === true;
+
+    if (acessoMaster) {
+      moduloAdmin.classList.remove("oculto");
+    }
+
+    // Verificar acesso ao Bonavere.
+
+    let acessoBonavere = acessoMaster;
 
     if (!acessoBonavere) {
+
       const {
         data: permissao,
         error: erroPermissao
@@ -81,7 +142,9 @@ if (perfil?.master === true && perfil.autorizado === true) {
         .eq("modulo", "bonavere")
         .maybeSingle();
 
-      if (erroPermissao) throw erroPermissao;
+      if (erroPermissao) {
+        throw erroPermissao;
+      }
 
       acessoBonavere =
         permissao?.nivel === "ver" ||
@@ -90,36 +153,80 @@ if (perfil?.master === true && perfil.autorizado === true) {
 
     if (acessoBonavere) {
       moduloBonavere.classList.remove("oculto");
+    }
+
+    if (acessoBonavere || acessoMaster) {
       mensagem.textContent = "";
     } else {
       mensagem.textContent =
         "Nenhum módulo disponível para sua conta.";
     }
 
+    botaoSair.disabled = false;
+
+    // Inicia o controle de inatividade
+    // somente apos autorizar o acesso.
+
+    window.GestorBCASessao.iniciarMonitoramento(
+      supabaseMenu
+    );
+
+
   } catch (erro) {
-    console.error("Erro no menu:", erro);
+
+    console.error(
+      "Erro ao iniciar o Menu Principal:",
+      erro
+    );
+
     mensagem.textContent =
-      "Não foi possível verificar as permissões. " +
+      "Não foi possível verificar o acesso. " +
       "Atualize a página ou contate o administrador.";
   }
 }
 
-botaoSair.addEventListener("click", async () => {
-  if (!supabaseMenu) return;
+// ==========================================
+// ENCERRAR SESSAO
+// ==========================================
 
-  botaoSair.disabled = true;
+botaoSair.addEventListener(
+  "click",
+  async () => {
 
-  const { error } = await supabaseMenu.auth.signOut();
+    if (!supabaseMenu) {
+      return;
+    }
 
-  if (error) {
-    console.error("Erro ao sair:", error);
-    mensagem.textContent =
-      "Não foi possível encerrar a sessão.";
-    botaoSair.disabled = false;
-    return;
+    botaoSair.disabled = true;
+
+    try {
+
+      const { error } =
+        await supabaseMenu.auth.signOut();
+
+      if (error) {
+        throw error;
+      }
+
+      window.location.replace("./index.html");
+
+    } catch (erro) {
+
+      console.error(
+        "Erro ao encerrar sessão:",
+        erro
+      );
+
+      mensagem.textContent =
+        "Não foi possível encerrar a sessão.";
+
+      botaoSair.disabled = false;
+    }
   }
+);
 
-  window.location.replace("./index.html");
-});
+// ==========================================
+// INICIALIZAR
+// ==========================================
 
 iniciarMenu();

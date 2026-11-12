@@ -14,6 +14,7 @@ const SUPABASE_PUBLIC_KEY =
 let clienteSupabase = null;
 let usuarioAtual = null;
 let podeEditar = false;
+let acessoAutorizado = false;
 
 let responsaveis = [];
 let tiposAtividade = [];
@@ -64,7 +65,63 @@ function encerrado(processo) {
 }
 
 function podeEditarCampos(processo) {
-  return podeEditar && !encerrado(processo);
+  return (
+    acessoAutorizado &&
+    podeEditar &&
+    !encerrado(processo)
+  );
+}
+
+// ==========================================
+// CONTROLE DE SESSAO
+// ==========================================
+
+async function conferirSessaoBonavere() {
+  if (
+    !clienteSupabase ||
+    !window.GestorBCASessao
+  ) {
+    return false;
+  }
+
+  const ultimaAtividade =
+    window.GestorBCASessao.obterUltimaAtividade();
+
+  const agora = Date.now();
+
+  if (
+    ultimaAtividade === null ||
+    ultimaAtividade > agora ||
+    agora - ultimaAtividade >=
+      window.GestorBCASessao.TEMPO_INATIVIDADE
+  ) {
+    acessoAutorizado = false;
+    podeEditar = false;
+    usuarioAtual = null;
+    botaoNovo.disabled = true;
+
+    await window.GestorBCASessao
+      .encerrarPorInatividade(clienteSupabase);
+
+    return false;
+  }
+
+  return true;
+}
+
+async function exigirSessaoParaEdicao() {
+  const valida = await conferirSessaoBonavere();
+
+  if (
+    !valida ||
+    !usuarioAtual ||
+    !acessoAutorizado ||
+    !podeEditar
+  ) {
+    throw new Error(
+      "Sessão expirada ou usuário sem permissão."
+    );
+  }
 }
 
 // ==========================================
@@ -194,10 +251,9 @@ async function atualizarCampo(
   campo,
   valor
 ) {
-  if (
-    !podeEditarCampos(processo) ||
-    !usuarioAtual
-  ) {
+  await exigirSessaoParaEdicao();
+
+  if (!podeEditarCampos(processo)) {
     throw new Error(
       "Este registro não permite edição de campos."
     );
@@ -291,6 +347,7 @@ function adicionarCelulaEditavel(
           campo,
           novoValor || null
         );
+
       } catch (erro) {
         console.error(
           "Erro ao editar texto:",
@@ -311,6 +368,7 @@ function adicionarCelulaEditavel(
         if (evento.key === "Enter") {
           evento.preventDefault();
           salvar();
+
         } else if (evento.key === "Escape") {
           evento.preventDefault();
           finalizada = true;
@@ -348,7 +406,6 @@ function adicionarCelulaData(
   }
 
   celula.classList.add("celula-editavel");
-
   celula.title =
     "Clique para escolher uma data";
 
@@ -404,6 +461,7 @@ function adicionarCelulaData(
           campo,
           novaData
         );
+
       } catch (erro) {
         console.error(
           "Erro ao editar data:",
@@ -429,6 +487,7 @@ function adicionarCelulaData(
         if (evento.key === "Enter") {
           evento.preventDefault();
           salvar();
+
         } else if (evento.key === "Escape") {
           evento.preventDefault();
           finalizada = true;
@@ -464,8 +523,6 @@ function adicionarCelulaSelecao(
     nomeAtual || "—"
   );
 
-  // Processos encerrados:
-  // somente a situacao continua editavel.
   if (!podeEditarCampos(processo)) {
     return celula;
   }
@@ -480,8 +537,8 @@ function adicionarCelulaSelecao(
     `${rotulo} do processo ${processo.numero_processo || ""}`
   );
 
-  // Opcao para deixar o campo vazio.
-  const vazia = document.createElement("option");
+  const vazia =
+    document.createElement("option");
 
   vazia.value = "";
   vazia.textContent = "Selecione";
@@ -490,8 +547,7 @@ function adicionarCelulaSelecao(
 
   const atual = processo[campo] || "";
 
-  // Carrega apenas registros ativos ou
-  // o registro inativo que ja estava vinculado.
+  // Preserva os vinculados inativos.
   for (const item of opcoes) {
     if (
       !item.ativo &&
@@ -512,8 +568,6 @@ function adicionarCelulaSelecao(
     seletor.appendChild(opcao);
   }
 
-  // Preserva a identificacao do item atual
-  // caso ele nao venha na lista consultada.
   if (
     atual &&
     !Array.from(seletor.options).some(
@@ -548,6 +602,7 @@ function adicionarCelulaSelecao(
           campo,
           novo || null
         );
+
       } catch (erro) {
         console.error(
           `Erro ao alterar ${rotulo}:`,
@@ -559,6 +614,7 @@ function adicionarCelulaSelecao(
         alert(
           `Não foi possível alterar ${rotulo.toLowerCase()}.`
         );
+
       } finally {
         seletor.disabled = false;
       }
@@ -571,7 +627,7 @@ function adicionarCelulaSelecao(
 }
 
 // ==========================================
-// MONTAR LINHAS DA PLANILHA
+// JANELA DE OBSERVACOES
 // ==========================================
 
 function adicionarCelulaObservacao(linha, processo) {
@@ -581,80 +637,116 @@ function adicionarCelulaObservacao(linha, processo) {
   );
 
   celula.classList.add("observacao-celula");
-  celula.title = "Clique para visualizar a observação";
+
+  celula.title =
+    "Clique para visualizar a observação";
 
   celula.addEventListener("click", () => {
-    const podeAlterar = podeEditarCampos(processo);
+    const podeAlterar =
+      podeEditarCampos(processo);
 
-    const janela = document.createElement("dialog");
+    const janela =
+      document.createElement("dialog");
+
     janela.className = "janela-observacao";
 
-    const titulo = document.createElement("h2");
-    titulo.textContent = "Observação do processo";
+    const titulo =
+      document.createElement("h2");
 
-    const identificacao = document.createElement("p");
-    identificacao.className = "identificacao-observacao";
+    titulo.textContent =
+      "Observação do processo";
+
+    const identificacao =
+      document.createElement("p");
+
+    identificacao.className =
+      "identificacao-observacao";
+
     identificacao.textContent =
-      processo.numero_processo || "Processo sem número";
+      processo.numero_processo ||
+      "Processo sem número";
 
-    const campo = document.createElement("textarea");
+    const campo =
+      document.createElement("textarea");
+
     campo.className = "texto-observacao";
     campo.value = processo.observacao || "";
     campo.readOnly = !podeAlterar;
 
-    const acoes = document.createElement("div");
+    const acoes =
+      document.createElement("div");
+
     acoes.className = "acoes-observacao";
 
-    const botaoFechar = document.createElement("button");
+    const botaoFechar =
+      document.createElement("button");
+
     botaoFechar.type = "button";
     botaoFechar.textContent = "Fechar";
 
     acoes.appendChild(botaoFechar);
 
-    botaoFechar.addEventListener("click", () => {
-      janela.close();
-    });
+    botaoFechar.addEventListener(
+      "click",
+      () => janela.close()
+    );
 
     if (podeAlterar) {
-      const botaoSalvar = document.createElement("button");
+      const botaoSalvar =
+        document.createElement("button");
+
       botaoSalvar.type = "button";
-      botaoSalvar.className = "salvar-observacao";
-      botaoSalvar.textContent = "Salvar alterações";
+      botaoSalvar.className =
+        "salvar-observacao";
+
+      botaoSalvar.textContent =
+        "Salvar alterações";
 
       acoes.appendChild(botaoSalvar);
 
-      botaoSalvar.addEventListener("click", async () => {
-        const novoTexto = campo.value.trim();
-        const textoAnterior = processo.observacao || "";
+      botaoSalvar.addEventListener(
+        "click",
+        async () => {
+          const novoTexto =
+            campo.value.trim();
 
-        if (novoTexto === textoAnterior) {
-          janela.close();
-          return;
+          const textoAnterior =
+            processo.observacao || "";
+
+          if (novoTexto === textoAnterior) {
+            janela.close();
+            return;
+          }
+
+          botaoSalvar.disabled = true;
+          botaoSalvar.textContent =
+            "Salvando...";
+
+          try {
+            await atualizarCampo(
+              processo,
+              "observacao",
+              novoTexto || null
+            );
+
+            janela.close();
+
+          } catch (erro) {
+            console.error(
+              "Erro ao salvar observação:",
+              erro
+            );
+
+            alert(
+              "Não foi possível salvar a observação."
+            );
+
+            botaoSalvar.disabled = false;
+            botaoSalvar.textContent =
+              "Salvar alterações";
+          }
         }
-
-        botaoSalvar.disabled = true;
-        botaoSalvar.textContent = "Salvando...";
-
-        try {
-          await atualizarCampo(
-            processo,
-            "observacao",
-            novoTexto || null
-          );
-
-          janela.close();
-        } catch (erro) {
-          console.error(
-            "Erro ao salvar observação:",
-            erro
-          );
-
-          alert("Não foi possível salvar a observação.");
-
-          botaoSalvar.disabled = false;
-          botaoSalvar.textContent = "Salvar alterações";
-        }
-      });
+      );
     }
 
     janela.appendChild(titulo);
@@ -664,15 +756,20 @@ function adicionarCelulaObservacao(linha, processo) {
 
     document.body.appendChild(janela);
 
-    janela.addEventListener("close", () => {
-      janela.remove();
-    });
+    janela.addEventListener(
+      "close",
+      () => janela.remove()
+    );
 
     janela.showModal();
   });
 
   return celula;
 }
+
+// ==========================================
+// MONTAR LINHAS DA PLANILHA
+// ==========================================
 
 function criarLinha(processo) {
   const linha = document.createElement("tr");
@@ -727,8 +824,12 @@ function criarLinha(processo) {
     "vencimento"
   );
 
-  // 7. Observacao - janela de visualizacao e edicao
-adicionarCelulaObservacao(linha, processo);
+  // 7. Observacao
+  adicionarCelulaObservacao(
+    linha,
+    processo
+  );
+
   // 8. Responsavel
   adicionarCelulaSelecao(
     linha,
@@ -742,7 +843,7 @@ adicionarCelulaObservacao(linha, processo);
     }
   );
 
-  // 9. Tipo - agora editavel
+  // 9. Tipo
   adicionarCelulaSelecao(
     linha,
     processo,
@@ -759,7 +860,7 @@ adicionarCelulaObservacao(linha, processo);
   const celulaSituacao =
     document.createElement("td");
 
-  if (podeEditar) {
+  if (podeEditar && acessoAutorizado) {
     const seletor =
       document.createElement("select");
 
@@ -808,7 +909,6 @@ adicionarCelulaObservacao(linha, processo);
 // ==========================================
 
 function ordenarAbertos(a, b) {
-  // Sem data limite: primeiro.
   if (!a.data_limite && b.data_limite) {
     return -1;
   }
@@ -828,7 +928,6 @@ function ordenarAbertos(a, b) {
     }
   }
 
-  // Desempate pela data de vencimento.
   if (!a.vencimento && b.vencimento) {
     return 1;
   }
@@ -914,12 +1013,16 @@ async function alterarSituacao(
   processo,
   seletor
 ) {
-  if (!podeEditar || !usuarioAtual) {
+  const novaSituacao = seletor.value;
+
+  if (
+    !podeEditar ||
+    !usuarioAtual ||
+    !acessoAutorizado
+  ) {
     seletor.value = processo.status;
     return;
   }
-
-  const novaSituacao = seletor.value;
 
   if (novaSituacao === processo.status) {
     return;
@@ -943,6 +1046,8 @@ async function alterarSituacao(
   seletor.disabled = true;
 
   try {
+    await exigirSessaoParaEdicao();
+
     const { data, error } = await clienteSupabase
       .from("bonavere_processos")
       .update({
@@ -972,6 +1077,7 @@ async function alterarSituacao(
     alert(
       "Não foi possível alterar a situação."
     );
+
   } finally {
     seletor.disabled = false;
   }
@@ -1016,6 +1122,13 @@ async function carregarTipos() {
 // ==========================================
 
 async function carregarProcessos() {
+  const sessaoValida =
+    await conferirSessaoBonavere();
+
+  if (!sessaoValida || !acessoAutorizado) {
+    return;
+  }
+
   const { data, error } = await clienteSupabase
     .from("bonavere_processos")
     .select(`
@@ -1042,6 +1155,13 @@ async function carregarProcessos() {
 
   if (error) throw error;
 
+  const aindaValida =
+    await conferirSessaoBonavere();
+
+  if (!aindaValida || !acessoAutorizado) {
+    return;
+  }
+
   mostrarProcessos(data || []);
 }
 
@@ -1051,6 +1171,7 @@ async function carregarProcessos() {
 
 async function verificarPermissao() {
   podeEditar = false;
+  acessoAutorizado = false;
   botaoNovo.disabled = true;
 
   const { data: perfil, error } =
@@ -1063,32 +1184,40 @@ async function verificarPermissao() {
   if (error) throw error;
 
   if (!perfil?.autorizado) {
-    return;
+    return false;
   }
 
-  if (perfil.master) {
+  if (perfil.master === true) {
     podeEditar = true;
-
-  } else {
-    const {
-      data: permissao,
-      error: erroPermissao
-    } = await clienteSupabase
-      .from("permissoes")
-      .select("nivel")
-      .eq("user_id", usuarioAtual.id)
-      .eq("modulo", "bonavere")
-      .maybeSingle();
-
-    if (erroPermissao) {
-      throw erroPermissao;
-    }
-
-    podeEditar =
-      permissao?.nivel === "editar";
+    acessoAutorizado = true;
+    botaoNovo.disabled = false;
+    return true;
   }
+
+  const {
+    data: permissao,
+    error: erroPermissao
+  } = await clienteSupabase
+    .from("permissoes")
+    .select("nivel")
+    .eq("user_id", usuarioAtual.id)
+    .eq("modulo", "bonavere")
+    .maybeSingle();
+
+  if (erroPermissao) {
+    throw erroPermissao;
+  }
+
+  podeEditar =
+    permissao?.nivel === "editar";
+
+  acessoAutorizado =
+    permissao?.nivel === "ver" ||
+    permissao?.nivel === "editar";
 
   botaoNovo.disabled = !podeEditar;
+
+  return acessoAutorizado;
 }
 
 // ==========================================
@@ -1142,11 +1271,15 @@ async function carregarOpcoesFormulario() {
 botaoNovo.addEventListener(
   "click",
   async () => {
-    if (!podeEditar) return;
+    if (!podeEditar || !acessoAutorizado) {
+      return;
+    }
 
     botaoNovo.disabled = true;
 
     try {
+      await exigirSessaoParaEdicao();
+
       formulario.reset();
 
       await Promise.all([
@@ -1169,6 +1302,7 @@ botaoNovo.addEventListener(
       alert(
         "Não foi possível abrir o cadastro."
       );
+
     } finally {
       botaoNovo.disabled = !podeEditar;
     }
@@ -1193,7 +1327,11 @@ formulario.addEventListener(
   async (evento) => {
     evento.preventDefault();
 
-    if (!podeEditar || !usuarioAtual) {
+    if (
+      !podeEditar ||
+      !usuarioAtual ||
+      !acessoAutorizado
+    ) {
       alert(
         "Você não possui permissão de edição."
       );
@@ -1247,6 +1385,8 @@ formulario.addEventListener(
     botaoSalvar.textContent = "Salvando...";
 
     try {
+      await exigirSessaoParaEdicao();
+
       const { error } = await clienteSupabase
         .from("bonavere_processos")
         .insert(novoProcesso);
@@ -1283,56 +1423,94 @@ formulario.addEventListener(
 // ==========================================
 
 async function iniciarBonavere() {
-  try {
-    if (!window.supabase) {
-      throw new Error(
-        "Biblioteca Supabase indisponível."
-      );
-    }
+  podeEditar = false;
+  acessoAutorizado = false;
+  botaoNovo.disabled = true;
 
-    if (
-      SUPABASE_PUBLIC_KEY ===
-      "COLE_AQUI_SUA_CHAVE_PUBLISHABLE"
-    ) {
+  mensagemTabela(
+    tabelaAbertos,
+    "Verificando autenticação..."
+  );
+
+  mensagemTabela(
+    tabelaFechados,
+    "Aguardando autorização..."
+  );
+
+  try {
+    if (!window.GestorBCASessao) {
       throw new Error(
-        "Configure a chave pública do Supabase."
+        "Configuração de sessão indisponível."
       );
     }
 
     clienteSupabase =
-      window.supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_PUBLIC_KEY
-      );
+      window.GestorBCASessao.criarCliente();
 
-    mensagemTabela(
-      tabelaAbertos,
-      "Verificando autenticação..."
-    );
-
+    // 1. Confirmar usuario autenticado.
     const { data, error } =
       await clienteSupabase.auth.getUser();
 
-    if (error || !data.user) {
-      window.location.replace(
-        "./index.html"
-      );
+    if (error || !data?.user) {
+      window.location.replace("./index.html");
+      return;
+    }
+
+    // 2. Verificar a expiracao da sessao.
+    const sessaoValida =
+      await conferirSessaoBonavere();
+
+    if (!sessaoValida) {
       return;
     }
 
     usuarioAtual = data.user;
 
+    // 3. Verificar permissao de leitura ou edicao.
+    const autorizado =
+      await verificarPermissao();
+
+    if (!autorizado) {
+      usuarioAtual = null;
+      podeEditar = false;
+      acessoAutorizado = false;
+      botaoNovo.disabled = true;
+
+      mensagemTabela(
+        tabelaAbertos,
+        "Sua conta não possui acesso ao módulo Bonavere."
+      );
+
+      mensagemTabela(
+        tabelaFechados,
+        "Acesso não autorizado."
+      );
+
+      return;
+    }
+
+    // 4. Iniciar o monitoramento de inatividade.
+    window.GestorBCASessao.iniciarMonitoramento(
+      clienteSupabase
+    );
+
+    // 5. Carregar os dados.
     mensagemTabela(
       tabelaAbertos,
       "Carregando processos..."
     );
 
-    await verificarPermissao();
-
     await Promise.all([
       carregarResponsaveis(),
       carregarTipos()
     ]);
+
+    const validaAposConsultas =
+      await conferirSessaoBonavere();
+
+    if (!validaAposConsultas) {
+      return;
+    }
 
     await carregarProcessos();
 
@@ -1352,8 +1530,14 @@ async function iniciarBonavere() {
       "Carregamento indisponível."
     );
 
+    podeEditar = false;
+    acessoAutorizado = false;
     botaoNovo.disabled = true;
   }
 }
+
+// ==========================================
+// INICIALIZACAO
+// ==========================================
 
 iniciarBonavere();

@@ -5,17 +5,14 @@
 // GESTOR BCA - FECHAMENTO MENSAL
 // ==========================================
 
-// Mesma configuracao publica do Gestor BCA.
-
-const SUPABASE_URL =
-  "https://pdvipfzbtpsuenpumktb.supabase.co";
-
-const SUPABASE_PUBLIC_KEY =
-  "sb_publishable_IOUb057J98PySmHjKai1Eg_mR4rSIjB";
+// Este arquivo utiliza js/sessao.js,
+// que deve ser carregado antes dele.
 
 let clienteSupabase = null;
 let acessoMaster = false;
 let consultaEmAndamento = false;
+let lancamentoEmEdicao = null;
+let salvandoEdicaoFinanceira = false;
 
 // ==========================================
 // ELEMENTOS DA PAGINA
@@ -90,10 +87,6 @@ const salvarEdicaoFinanceira =
 const mensagemEdicaoFinanceira =
   document.getElementById("mensagemEdicaoFinanceira");
 
-let lancamentoEmEdicao = null;
-let salvandoEdicaoFinanceira = false;
-
-
 // ==========================================
 // FORMATACAO
 // ==========================================
@@ -144,6 +137,7 @@ function mesAtual() {
   const hoje = new Date();
 
   const ano = hoje.getFullYear();
+
   const mes = String(
     hoje.getMonth() + 1
   ).padStart(2, "0");
@@ -166,6 +160,84 @@ function proximoMes(mesSelecionado) {
 }
 
 // ==========================================
+// PROTECAO DOS DADOS FINANCEIROS
+// ==========================================
+
+function bloquearFechamento() {
+  acessoMaster = false;
+
+  painelFechamento.classList.add("oculto");
+
+  botaoConsultar.disabled = true;
+  salvarEdicaoFinanceira.disabled = true;
+
+  lancamentoEmEdicao = null;
+
+  limparResultados();
+
+  if (janelaEditarFinanceiro.open) {
+    janelaEditarFinanceiro.close();
+  }
+}
+
+// Verifica o prazo de inatividade e a
+// autenticacao antes de acessar dados
+// financeiros.
+//
+// As politicas RLS do Supabase continuam
+// sendo obrigatorias para proteger o banco.
+
+async function exigirMasterFinanceiro() {
+  if (
+    !acessoMaster ||
+    !clienteSupabase ||
+    !window.GestorBCASessao
+  ) {
+    throw new Error(
+      "Acesso financeiro restrito ao Master."
+    );
+  }
+
+  const ultimaAtividade =
+    window.GestorBCASessao.obterUltimaAtividade();
+
+  const agora = Date.now();
+
+  if (
+    ultimaAtividade === null ||
+    ultimaAtividade > agora ||
+    agora - ultimaAtividade >=
+      window.GestorBCASessao.TEMPO_INATIVIDADE
+  ) {
+    bloquearFechamento();
+
+    await window.GestorBCASessao
+      .encerrarPorInatividade(
+        clienteSupabase
+      );
+
+    throw new Error(
+      "Sessão expirada. Faça login novamente."
+    );
+  }
+
+  const { data, error } =
+    await clienteSupabase.auth.getUser();
+
+  if (error || !data?.user) {
+    bloquearFechamento();
+
+    window.location.replace("./index.html");
+
+    throw new Error(
+      "Autenticação não encontrada."
+    );
+  }
+
+  return true;
+}
+
+// ==========================================
 // FUNCOES AUXILIARES DA TABELA
 // ==========================================
 
@@ -185,7 +257,11 @@ function criarCelula(linha, conteudo, classe = "") {
   return celula;
 }
 
-function mostrarTabelaVazia(corpo, colunas, texto) {
+function mostrarTabelaVazia(
+  corpo,
+  colunas,
+  texto
+) {
   corpo.replaceChildren();
 
   const linha = document.createElement("tr");
@@ -199,9 +275,15 @@ function mostrarTabelaVazia(corpo, colunas, texto) {
 }
 
 function limparResultados() {
-  totalAtividades.textContent = formatarMoeda(0);
-  totalPendente.textContent = formatarMoeda(0);
-  totalPago.textContent = formatarMoeda(0);
+  totalAtividades.textContent =
+    formatarMoeda(0);
+
+  totalPendente.textContent =
+    formatarMoeda(0);
+
+  totalPago.textContent =
+    formatarMoeda(0);
+
   quantidadeAtividades.textContent = "0";
 
   mostrarTabelaVazia(
@@ -218,20 +300,27 @@ function limparResultados() {
 }
 
 // ==========================================
-// LISTA DE RESPONSAVEIS PARA O FILTRO
+// CARREGAR RESPONSAVEIS
 // ==========================================
 
 async function carregarResponsaveis() {
+  await exigirMasterFinanceiro();
+
   const { data, error } = await clienteSupabase
     .from("bonavere_responsaveis")
     .select("id, nome")
-    .order("nome", { ascending: true });
+    .order("nome", {
+      ascending: true
+    });
 
   if (error) throw error;
+
+  await exigirMasterFinanceiro();
 
   filtroResponsavel.replaceChildren();
 
   const todos = document.createElement("option");
+
   todos.value = "";
   todos.textContent = "Todos os responsáveis";
 
@@ -252,9 +341,13 @@ async function carregarResponsaveis() {
 // ==========================================
 
 async function buscarLancamentos() {
+  await exigirMasterFinanceiro();
+
   const mesSelecionado = filtroMes.value;
 
-  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(mesSelecionado)) {
+  if (
+    !/^\d{4}-(0[1-9]|1[0-2])$/.test(mesSelecionado)
+  ) {
     throw new Error(
       "Selecione um mês de fechamento válido."
     );
@@ -268,10 +361,16 @@ async function buscarLancamentos() {
   const todosLancamentos = [];
   const tamanhoPagina = 500;
 
-  // Paginacao para evitar limitar a consulta
-  // silenciosamente aos primeiros registros.
+  // Paginacao para evitar o limite
+  // padrao de resultados por consulta.
 
-  for (let inicioPagina = 0; ; inicioPagina += tamanhoPagina) {
+  for (
+    let inicioPagina = 0;
+    ;
+    inicioPagina += tamanhoPagina
+  ) {
+    await exigirMasterFinanceiro();
+
     let consulta = clienteSupabase
       .from("bonavere_lancamentos")
       .select(`
@@ -295,9 +394,9 @@ async function buscarLancamentos() {
           nome
         )
       `)
-
-.eq("situacao_financeira", "ativa")
-
+      // Somente atividades efetivamente
+      // concluidas entram no fechamento.
+      .eq("situacao_financeira", "ativa")
       .gte("mes_fechamento", inicio)
       .lt("mes_fechamento", fim)
       .order("mes_fechamento", {
@@ -321,6 +420,8 @@ async function buscarLancamentos() {
     const { data, error } = await consulta;
 
     if (error) throw error;
+
+    await exigirMasterFinanceiro();
 
     const pagina = data || [];
 
@@ -383,6 +484,7 @@ function atualizarResumo(lancamentos) {
       5,
       "Nenhuma atividade encontrada para este filtro."
     );
+
     return;
   }
 
@@ -430,16 +532,19 @@ function atualizarResumo(lancamentos) {
 
     criarCelula(linha, grupo.nome);
     criarCelula(linha, grupo.quantidade);
+
     criarCelula(
       linha,
       formatarMoeda(grupo.total),
       "valor-financeiro"
     );
+
     criarCelula(
       linha,
       formatarMoeda(grupo.pendente),
       "situacao-pendente"
     );
+
     criarCelula(
       linha,
       formatarMoeda(grupo.pago),
@@ -454,44 +559,54 @@ function atualizarResumo(lancamentos) {
 // ABRIR EDICAO FINANCEIRA
 // ==========================================
 
-function abrirEdicaoFinanceira(item) {
-  if (!acessoMaster || !clienteSupabase) {
-    return;
+async function abrirEdicaoFinanceira(item) {
+  try {
+    await exigirMasterFinanceiro();
+
+    lancamentoEmEdicao = item;
+
+    const numeroProcesso =
+      item.bonavere_processos?.numero_processo ||
+      "Processo não identificado";
+
+    identificacaoLancamento.textContent =
+      `Processo: ${numeroProcesso} | Ciclo: ${item.ciclo}`;
+
+    editarLancamentoId.value = item.id;
+
+    editarDataConclusao.value =
+      item.data_conclusao || "";
+
+    editarCompetencia.value =
+      item.competencia || "";
+
+    editarMesFechamento.value =
+      item.mes_fechamento
+        ? item.mes_fechamento.substring(0, 7)
+        : "";
+
+    editarValor.value =
+      Number(item.valor_registrado).toFixed(2);
+
+    editarPagamento.value =
+      item.pago_em || "";
+
+    mensagemEdicaoFinanceira.textContent = "";
+
+    janelaEditarFinanceiro.showModal();
+
+  } catch (erro) {
+    console.error(
+      "Erro ao abrir edição financeira:",
+      erro
+    );
+
+    if (acessoMaster) {
+      mensagemFechamento.textContent =
+        "Não foi possível abrir a edição financeira.";
+    }
   }
-
-  lancamentoEmEdicao = item;
-
-  const numeroProcesso =
-    item.bonavere_processos?.numero_processo ||
-    "Processo não identificado";
-
-  identificacaoLancamento.textContent =
-    `Processo: ${numeroProcesso} | Ciclo: ${item.ciclo}`;
-
-  editarLancamentoId.value = item.id;
-
-  editarDataConclusao.value =
-    item.data_conclusao || "";
-
-  editarCompetencia.value =
-    item.competencia || "";
-
-  editarMesFechamento.value =
-    item.mes_fechamento
-      ? item.mes_fechamento.substring(0, 7)
-      : "";
-
-  editarValor.value =
-    Number(item.valor_registrado).toFixed(2);
-
-  editarPagamento.value =
-    item.pago_em || "";
-
-  mensagemEdicaoFinanceira.textContent = "";
-
-  janelaEditarFinanceiro.showModal();
 }
-
 
 // ==========================================
 // CANCELAR EDICAO
@@ -501,6 +616,7 @@ cancelarEdicaoFinanceira.addEventListener(
   "click",
   () => {
     if (salvandoEdicaoFinanceira) return;
+
     janelaEditarFinanceiro.close();
   }
 );
@@ -520,7 +636,6 @@ janelaEditarFinanceiro.addEventListener(
     lancamentoEmEdicao = null;
   }
 );
-
 
 // ==========================================
 // SALVAR EDICAO FINANCEIRA
@@ -560,10 +675,13 @@ formEditarFinanceiro.addEventListener(
     if (
       !dataConclusao ||
       !competencia ||
-      !/^\d{4}-(0[1-9]|1[0-2])$/.test(mesSelecionado)
+      !/^\d{4}-(0[1-9]|1[0-2])$/.test(
+        mesSelecionado
+      )
     ) {
       mensagemEdicaoFinanceira.textContent =
         "Preencha corretamente as datas obrigatórias.";
+
       return;
     }
 
@@ -578,6 +696,7 @@ formEditarFinanceiro.addEventListener(
     ) {
       mensagemEdicaoFinanceira.textContent =
         "Informe um valor válido com até duas casas decimais.";
+
       return;
     }
 
@@ -595,6 +714,10 @@ formEditarFinanceiro.addEventListener(
     mensagemEdicaoFinanceira.textContent = "";
 
     try {
+      // Revalidar a sessao antes de
+      // realizar a operacao financeira.
+      await exigirMasterFinanceiro();
+
       const { error } = await clienteSupabase
         .rpc("bonavere_editar_lancamento", {
           p_id: lancamentoEmEdicao.id,
@@ -607,14 +730,20 @@ formEditarFinanceiro.addEventListener(
 
       if (error) throw error;
 
+      // Nao apresentar dados se a sessao
+      // tiver expirado durante a operacao.
+      await exigirMasterFinanceiro();
+
       janelaEditarFinanceiro.close();
 
-      // Se o fechamento mudou de mes,
-      // o registro pode sair do filtro atual.
+      // Se mudou de mes, o registro pode
+      // sair do filtro atualmente selecionado.
       await consultarFechamento();
 
-      mensagemFechamento.textContent =
-        "Alteração financeira salva. Consulta atualizada.";
+      if (acessoMaster) {
+        mensagemFechamento.textContent =
+          "Alteração financeira salva. Consulta atualizada.";
+      }
 
     } catch (erro) {
       console.error(
@@ -622,14 +751,18 @@ formEditarFinanceiro.addEventListener(
         erro
       );
 
-      mensagemEdicaoFinanceira.textContent =
-        erro?.message ||
-        "Não foi possível salvar as alterações.";
+      if (acessoMaster) {
+        mensagemEdicaoFinanceira.textContent =
+          erro?.message ||
+          "Não foi possível salvar as alterações.";
+      }
 
     } finally {
       salvandoEdicaoFinanceira = false;
 
-      salvarEdicaoFinanceira.disabled = false;
+      salvarEdicaoFinanceira.disabled =
+        !acessoMaster;
+
       cancelarEdicaoFinanceira.disabled = false;
 
       salvarEdicaoFinanceira.textContent =
@@ -637,7 +770,6 @@ formEditarFinanceiro.addEventListener(
     }
   }
 );
-
 
 // ==========================================
 // DETALHAMENTO DOS LANCAMENTOS
@@ -652,6 +784,7 @@ function atualizarDetalhamento(lancamentos) {
       9,
       "Nenhum lançamento encontrado."
     );
+
     return;
   }
 
@@ -716,23 +849,29 @@ function atualizarDetalhamento(lancamentos) {
         : "situacao-pendente"
     );
 
-   
-// Botao de edicao financeira, exclusivo do Master.
+    // Acao financeira exclusiva do Master.
 
-const celulaAcoes = document.createElement("td");
+    const celulaAcoes =
+      document.createElement("td");
 
-const botaoEditar = document.createElement("button");
+    const botaoEditar =
+      document.createElement("button");
 
-botaoEditar.type = "button";
-botaoEditar.className = "botao-editar-lancamento";
-botaoEditar.textContent = "Editar";
+    botaoEditar.type = "button";
 
-botaoEditar.addEventListener("click", () => {
-  abrirEdicaoFinanceira(item);
-});
+    botaoEditar.className =
+      "botao-editar-lancamento";
 
-celulaAcoes.appendChild(botaoEditar);
-linha.appendChild(celulaAcoes);
+    botaoEditar.textContent = "Editar";
+
+    botaoEditar.addEventListener(
+      "click",
+      () => abrirEdicaoFinanceira(item)
+    );
+
+    celulaAcoes.appendChild(botaoEditar);
+
+    linha.appendChild(celulaAcoes);
 
     corpoLancamentos.appendChild(linha);
   }
@@ -753,12 +892,17 @@ async function consultarFechamento() {
 
   consultaEmAndamento = true;
   botaoConsultar.disabled = true;
+
   mensagemFechamento.textContent =
     "Consultando lançamentos financeiros...";
 
   try {
+    await exigirMasterFinanceiro();
+
     const lancamentos =
       await buscarLancamentos();
+
+    await exigirMasterFinanceiro();
 
     atualizarIndicadores(lancamentos);
     atualizarResumo(lancamentos);
@@ -777,11 +921,14 @@ async function consultarFechamento() {
 
     limparResultados();
 
-    mensagemFechamento.textContent =
-      "Não foi possível consultar o fechamento. Verifique o console.";
+    if (acessoMaster) {
+      mensagemFechamento.textContent =
+        "Não foi possível consultar o fechamento. Verifique o console.";
+    }
+
   } finally {
-    botaoConsultar.disabled = false;
     consultaEmAndamento = false;
+    botaoConsultar.disabled = !acessoMaster;
   }
 }
 
@@ -790,20 +937,22 @@ async function consultarFechamento() {
 // ==========================================
 
 async function iniciarFechamento() {
-  painelFechamento.classList.add("oculto");
-  botaoConsultar.disabled = true;
+  bloquearFechamento();
+
+  mensagemFechamento.textContent =
+    "Verificando acesso financeiro...";
 
   try {
-    if (!window.supabase) {
+    if (!window.GestorBCASessao) {
       throw new Error(
-        "A biblioteca do Supabase não foi carregada."
+        "Configuração de sessão não carregada."
       );
     }
 
-    clienteSupabase = window.supabase.createClient(
-      SUPABASE_URL,
-      SUPABASE_PUBLIC_KEY
-    );
+    clienteSupabase =
+      window.GestorBCASessao.criarCliente();
+
+    // 1. Confirmar autenticacao Google.
 
     const { data, error } =
       await clienteSupabase.auth.getUser();
@@ -813,32 +962,72 @@ async function iniciarFechamento() {
       return;
     }
 
-    const { data: perfil, error: erroPerfil } =
-      await clienteSupabase
-        .from("perfis")
-        .select("master, autorizado")
-        .eq("id", data.user.id)
-        .maybeSingle();
+    // 2. Verificar se a sessao expirou.
+
+    const ultimaAtividade =
+      window.GestorBCASessao.obterUltimaAtividade();
+
+    const agora = Date.now();
+
+    if (
+      ultimaAtividade === null ||
+      ultimaAtividade > agora ||
+      agora - ultimaAtividade >=
+        window.GestorBCASessao.TEMPO_INATIVIDADE
+    ) {
+      await window.GestorBCASessao
+        .encerrarPorInatividade(
+          clienteSupabase
+        );
+
+      return;
+    }
+
+    // 3. Confirmar permissao Master.
+
+    const {
+      data: perfil,
+      error: erroPerfil
+    } = await clienteSupabase
+      .from("perfis")
+      .select("master, autorizado")
+      .eq("id", data.user.id)
+      .maybeSingle();
 
     if (erroPerfil) throw erroPerfil;
 
     if (
-      !perfil ||
-      perfil.master !== true ||
-      perfil.autorizado !== true
+      perfil?.master !== true ||
+      perfil?.autorizado !== true
     ) {
       mensagemFechamento.textContent =
         "Acesso restrito ao administrador Master.";
+
       return;
     }
 
     acessoMaster = true;
 
+    // 4. Selecionar o mes atual.
+
     filtroMes.value = mesAtual();
+
+    // 5. Carregar responsaveis.
 
     await carregarResponsaveis();
 
+    await exigirMasterFinanceiro();
+
+    // 6. Iniciar monitoramento de inatividade.
+
+    window.GestorBCASessao.iniciarMonitoramento(
+      clienteSupabase
+    );
+
+    // 7. Exibir painel e consultar valores.
+
     painelFechamento.classList.remove("oculto");
+
     botaoConsultar.disabled = false;
 
     await consultarFechamento();
@@ -849,8 +1038,7 @@ async function iniciarFechamento() {
       erro
     );
 
-    acessoMaster = false;
-    painelFechamento.classList.add("oculto");
+    bloquearFechamento();
 
     mensagemFechamento.textContent =
       "Não foi possível verificar o acesso financeiro.";
@@ -865,5 +1053,9 @@ botaoConsultar.addEventListener(
   "click",
   consultarFechamento
 );
+
+// ==========================================
+// INICIALIZACAO
+// ==========================================
 
 iniciarFechamento();

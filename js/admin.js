@@ -1,71 +1,101 @@
 
 "use strict";
 
-// ==========================================
 // GESTOR BCA - PAINEL ADMINISTRATIVO
-// ==========================================
-
-const SUPABASE_URL =
-  "https://pdvipfzbtpsuenpumktb.supabase.co";
-
-const SUPABASE_PUBLIC_KEY =
-  "sb_publishable_IOUb057J98PySmHjKai1Eg_mR4rSIjB";
+// Requer js/sessao.js carregado antes deste arquivo.
 
 let clienteSupabase = null;
 let acessoMaster = false;
 
+const mensagemAdmin = document.getElementById("mensagemAdmin");
+const painelMaster = document.getElementById("painelMaster");
+const formResponsavel = document.getElementById("formResponsavel");
+const nomeResponsavel = document.getElementById("nomeResponsavel");
+const salvarResponsavel = document.getElementById("salvarResponsavel");
+const mensagemResponsavel = document.getElementById("mensagemResponsavel");
+const listaResponsaveis = document.getElementById("listaResponsaveis");
+const formTipo = document.getElementById("formTipo");
+const nomeTipo = document.getElementById("nomeTipo");
+const valorTipo = document.getElementById("valorTipo");
+const salvarTipo = document.getElementById("salvarTipo");
+const mensagemTipo = document.getElementById("mensagemTipo");
+const listaTipos = document.getElementById("listaTipos");
+
 // ==========================================
-// ELEMENTOS DA PAGINA
+// PROTECAO DO PAINEL
 // ==========================================
 
-const mensagemAdmin =
-  document.getElementById("mensagemAdmin");
+function bloquearPainel() {
+  acessoMaster = false;
+  painelMaster.classList.add("oculto");
+  salvarResponsavel.disabled = true;
+  salvarTipo.disabled = true;
+  listaResponsaveis.replaceChildren();
+  listaTipos.replaceChildren();
+}
 
-const painelMaster =
-  document.getElementById("painelMaster");
+// A verificacao no navegador complementa as
+// politicas RLS do Supabase.
+// A seguranca nao depende apenas deste codigo.
 
-const formResponsavel =
-  document.getElementById("formResponsavel");
+async function exigirMaster() {
+  if (!acessoMaster || !clienteSupabase || !window.GestorBCASessao) {
+    throw new Error("Acesso restrito ao administrador Master.");
+  }
 
-const nomeResponsavel =
-  document.getElementById("nomeResponsavel");
+  const ultima = window.GestorBCASessao.obterUltimaAtividade();
+  const agora = Date.now();
 
-const salvarResponsavel =
-  document.getElementById("salvarResponsavel");
+  if (
+    ultima === null ||
+    ultima > agora ||
+    agora - ultima >= window.GestorBCASessao.TEMPO_INATIVIDADE
+  ) {
+    bloquearPainel();
 
-const mensagemResponsavel =
-  document.getElementById("mensagemResponsavel");
+    await window.GestorBCASessao.encerrarPorInatividade(
+      clienteSupabase
+    );
 
-const listaResponsaveis =
-  document.getElementById("listaResponsaveis");
+    throw new Error("Sessão expirada. Faça login novamente.");
+  }
 
-const formTipo =
-  document.getElementById("formTipo");
+  const { data, error } =
+    await clienteSupabase.auth.getUser();
 
-const nomeTipo =
-  document.getElementById("nomeTipo");
-const valorTipo =
-  document.getElementById("valorTipo");
-
-const salvarTipo =
-  document.getElementById("salvarTipo");
-
-const mensagemTipo =
-  document.getElementById("mensagemTipo");
-
-const listaTipos =
-  document.getElementById("listaTipos");
+  if (error || !data?.user) {
+    bloquearPainel();
+    window.location.replace("./index.html");
+    throw new Error("Autenticação não encontrada.");
+  }
+}
 
 // ==========================================
 // FUNCOES AUXILIARES
 // ==========================================
 
-function verificarMaster() {
-  if (!acessoMaster || !clienteSupabase) {
+function validarNome(nome) {
+  return nome.length > 0 && nome.length <= 150;
+}
+
+function validarValor(valorTexto) {
+  const valor = Number(
+    valorTexto.trim().replace(",", ".")
+  );
+
+  if (
+    valorTexto.trim() === "" ||
+    !Number.isFinite(valor) ||
+    valor < 0 ||
+    valor > 9999999999.99 ||
+    Math.abs(valor * 100 - Math.round(valor * 100)) > 0.000001
+  ) {
     throw new Error(
-      "Operação restrita ao administrador Master."
+      "Informe um valor válido com até duas casas decimais."
     );
   }
+
+  return valor;
 }
 
 function criarBotao(texto, acao) {
@@ -79,16 +109,12 @@ function criarBotao(texto, acao) {
   return botao;
 }
 
-function validarNome(nome) {
-  return nome.length > 0 && nome.length <= 150;
-}
-
 // ==========================================
 // LISTAR RESPONSAVEIS
 // ==========================================
 
 async function carregarResponsaveis() {
-  verificarMaster();
+  await exigirMaster();
 
   listaResponsaveis.textContent =
     "Carregando responsáveis...";
@@ -98,21 +124,13 @@ async function carregarResponsaveis() {
     .select("id, nome, ativo")
     .order("nome", { ascending: true });
 
-  if (error) {
-    console.error(
-      "Erro ao consultar responsáveis:",
-      error
-    );
+  if (error) throw error;
 
-    listaResponsaveis.textContent =
-      "Não foi possível carregar os responsáveis.";
-
-    throw error;
-  }
+  await exigirMaster();
 
   listaResponsaveis.replaceChildren();
 
-  if (!data || data.length === 0) {
+  if (!data?.length) {
     listaResponsaveis.textContent =
       "Nenhum responsável cadastrado.";
     return;
@@ -120,7 +138,6 @@ async function carregarResponsaveis() {
 
   for (const responsavel of data) {
     const item = document.createElement("div");
-
     item.className = "item-responsavel";
 
     if (!responsavel.ativo) {
@@ -129,27 +146,26 @@ async function carregarResponsaveis() {
 
     const nome = document.createElement("span");
 
-    nome.textContent = responsavel.nome;
-
-    if (!responsavel.ativo) {
-      nome.textContent += " (Inativo)";
-    }
+    nome.textContent =
+      responsavel.nome +
+      (responsavel.ativo ? "" : " (Inativo)");
 
     const acoes = document.createElement("div");
     acoes.className = "acoes-responsavel";
 
-    const botaoEditar = criarBotao(
-      "Editar",
-      () => editarResponsavel(responsavel)
+    acoes.appendChild(
+      criarBotao(
+        "Editar",
+        () => editarResponsavel(responsavel)
+      )
     );
 
-    const botaoSituacao = criarBotao(
-      responsavel.ativo ? "Desativar" : "Reativar",
-      () => alterarAtividadeResponsavel(responsavel)
+    acoes.appendChild(
+      criarBotao(
+        responsavel.ativo ? "Desativar" : "Reativar",
+        () => alterarAtividadeResponsavel(responsavel)
+      )
     );
-
-    acoes.appendChild(botaoEditar);
-    acoes.appendChild(botaoSituacao);
 
     item.appendChild(nome);
     item.appendChild(acoes);
@@ -167,12 +183,6 @@ formResponsavel.addEventListener(
   async (evento) => {
     evento.preventDefault();
 
-    if (!acessoMaster) {
-      mensagemResponsavel.textContent =
-        "Você não possui autorização.";
-      return;
-    }
-
     const nome = nomeResponsavel.value.trim();
 
     if (!validarNome(nome)) {
@@ -183,10 +193,11 @@ formResponsavel.addEventListener(
 
     salvarResponsavel.disabled = true;
     salvarResponsavel.textContent = "Salvando...";
-
     mensagemResponsavel.textContent = "";
 
     try {
+      await exigirMaster();
+
       const { data, error } = await clienteSupabase
         .from("bonavere_responsaveis")
         .insert({
@@ -197,18 +208,16 @@ formResponsavel.addEventListener(
 
       if (error) throw error;
 
-      if (!data || data.length !== 1) {
-        throw new Error(
-          "Cadastro não confirmado pelo banco."
-        );
+      if (data?.length !== 1) {
+        throw new Error("Cadastro não confirmado.");
       }
 
       nomeResponsavel.value = "";
 
+      await carregarResponsaveis();
+
       mensagemResponsavel.textContent =
         "Responsável cadastrado com sucesso!";
-
-      await carregarResponsaveis();
 
     } catch (erro) {
       console.error(
@@ -218,40 +227,43 @@ formResponsavel.addEventListener(
 
       mensagemResponsavel.textContent =
         "Não foi possível cadastrar o responsável.";
+
     } finally {
-      salvarResponsavel.disabled = false;
+      salvarResponsavel.disabled = !acessoMaster;
       salvarResponsavel.textContent = "Cadastrar";
     }
   }
 );
 
 // ==========================================
-// EDITAR NOME DO RESPONSAVEL
+// EDITAR RESPONSAVEL
 // ==========================================
 
 async function editarResponsavel(responsavel) {
-  if (!acessoMaster) return;
-
-  const resposta = window.prompt(
-    "Digite o novo nome do responsável:",
-    responsavel.nome
-  );
-
-  if (resposta === null) return;
-
-  const novoNome = resposta.trim();
-
-  if (!validarNome(novoNome)) {
-    alert("Informe um nome com até 150 caracteres.");
-    return;
-  }
-
-  if (novoNome === responsavel.nome) return;
-
-  mensagemResponsavel.textContent =
-    "Salvando alteração...";
-
   try {
+    await exigirMaster();
+
+    const resposta = window.prompt(
+      "Digite o novo nome do responsável:",
+      responsavel.nome
+    );
+
+    if (resposta === null) return;
+
+    const novoNome = resposta.trim();
+
+    if (!validarNome(novoNome)) {
+      alert("Informe um nome com até 150 caracteres.");
+      return;
+    }
+
+    if (novoNome === responsavel.nome) return;
+
+    await exigirMaster();
+
+    mensagemResponsavel.textContent =
+      "Salvando alteração...";
+
     const { data, error } = await clienteSupabase
       .from("bonavere_responsaveis")
       .update({ nome: novoNome })
@@ -260,10 +272,8 @@ async function editarResponsavel(responsavel) {
 
     if (error) throw error;
 
-    if (!data || data.length !== 1) {
-      throw new Error(
-        "Alteração não confirmada pelo banco."
-      );
+    if (data?.length !== 1) {
+      throw new Error("Alteração não confirmada.");
     }
 
     await carregarResponsaveis();
@@ -287,24 +297,23 @@ async function editarResponsavel(responsavel) {
 // ==========================================
 
 async function alterarAtividadeResponsavel(responsavel) {
-  if (!acessoMaster) return;
-
-  const novoEstado = !responsavel.ativo;
-
-  const acao = novoEstado
-    ? "reativar"
-    : "desativar";
-
-  const confirmado = window.confirm(
-    `Deseja ${acao} o responsável "${responsavel.nome}"?`
-  );
-
-  if (!confirmado) return;
-
-  mensagemResponsavel.textContent =
-    "Atualizando cadastro...";
-
   try {
+    await exigirMaster();
+
+    const novoEstado = !responsavel.ativo;
+    const acao = novoEstado ? "reativar" : "desativar";
+
+    const confirmado = window.confirm(
+      `Deseja ${acao} o responsável "${responsavel.nome}"?`
+    );
+
+    if (!confirmado) return;
+
+    await exigirMaster();
+
+    mensagemResponsavel.textContent =
+      "Atualizando cadastro...";
+
     const { data, error } = await clienteSupabase
       .from("bonavere_responsaveis")
       .update({ ativo: novoEstado })
@@ -313,22 +322,19 @@ async function alterarAtividadeResponsavel(responsavel) {
 
     if (error) throw error;
 
-    if (!data || data.length !== 1) {
-      throw new Error(
-        "Alteração não confirmada pelo banco."
-      );
+    if (data?.length !== 1) {
+      throw new Error("Alteração não confirmada.");
     }
 
     await carregarResponsaveis();
 
-    mensagemResponsavel.textContent =
-      novoEstado
-        ? "Responsável reativado com sucesso!"
-        : "Responsável desativado com sucesso!";
+    mensagemResponsavel.textContent = novoEstado
+      ? "Responsável reativado com sucesso!"
+      : "Responsável desativado com sucesso!";
 
   } catch (erro) {
     console.error(
-      "Erro ao alterar situação do responsável:",
+      "Erro ao alterar responsável:",
       erro
     );
 
@@ -338,185 +344,148 @@ async function alterarAtividadeResponsavel(responsavel) {
 }
 
 // ==========================================
-// LISTAR TIPOS DE ATIVIDADES
+// LISTAR TIPOS DE ATIVIDADES E VALORES
 // ==========================================
 
-
- // ==========================================
- // LISTAR TIPOS DE ATIVIDADES E VALORES
- // ==========================================
-
 async function carregarTipos() {
-  verificarMaster();
+  await exigirMaster();
 
   listaTipos.textContent =
     "Carregando tipos de atividades...";
 
-  try {
-    // Busca os tipos de atividades.
-    const { data: tipos, error: erroTipos } =
-      await clienteSupabase
-        .from("bonavere_tipos")
-        .select("id, nome, ativo")
-        .order("nome", { ascending: true });
+  const { data: tipos, error: erroTipos } =
+    await clienteSupabase
+      .from("bonavere_tipos")
+      .select("id, nome, ativo")
+      .order("nome", { ascending: true });
 
-    if (erroTipos) throw erroTipos;
+  if (erroTipos) throw erroTipos;
 
-    // Busca os valores financeiros separadamente.
-    // A tabela de precos possui acesso exclusivo
-    // ao Master pelas politicas do Supabase.
-    const { data: precos, error: erroPrecos } =
-      await clienteSupabase
-        .from("bonavere_precos")
-        .select("tipo_id, valor_atual");
+  const { data: precos, error: erroPrecos } =
+    await clienteSupabase
+      .from("bonavere_precos")
+      .select("tipo_id, valor_atual");
 
-    if (erroPrecos) throw erroPrecos;
+  if (erroPrecos) throw erroPrecos;
 
-    const mapaPrecos = new Map();
+  await exigirMaster();
 
-    for (const preco of precos || []) {
-      mapaPrecos.set(
+  const mapaPrecos = new Map(
+    (precos || []).map(
+      preco => [
         preco.tipo_id,
         Number(preco.valor_atual)
-      );
+      ]
+    )
+  );
+
+  listaTipos.replaceChildren();
+
+  if (!tipos?.length) {
+    listaTipos.textContent =
+      "Nenhum tipo de atividade cadastrado.";
+    return;
+  }
+
+  for (const tipo of tipos) {
+    const item = document.createElement("div");
+    item.className = "item-responsavel";
+
+    if (!tipo.ativo) {
+      item.classList.add("inativo");
     }
 
-    listaTipos.replaceChildren();
+    const informacoes = document.createElement("div");
 
-    if (!tipos || tipos.length === 0) {
-      listaTipos.textContent =
-        "Nenhum tipo de atividade cadastrado.";
-      return;
-    }
+    const nome = document.createElement("div");
+    nome.textContent =
+      tipo.nome + (tipo.ativo ? "" : " (Inativo)");
 
-    for (const tipo of tipos) {
-      const item = document.createElement("div");
-      item.className = "item-responsavel";
+    const valorAtual = mapaPrecos.get(tipo.id);
 
-      if (!tipo.ativo) {
-        item.classList.add("inativo");
-      }
+    const textoValor = document.createElement("small");
 
-      const informacoes = document.createElement("div");
+    textoValor.textContent = valorAtual === undefined
+      ? "Valor ainda não definido"
+      : "Valor: " + valorAtual.toLocaleString("pt-BR", {
+          style: "currency",
+          currency: "BRL"
+        });
 
-      const nome = document.createElement("div");
-      nome.textContent =
-        tipo.nome + (tipo.ativo ? "" : " (Inativo)");
+    informacoes.appendChild(nome);
+    informacoes.appendChild(textoValor);
 
-      const valor = mapaPrecos.get(tipo.id);
+    const acoes = document.createElement("div");
+    acoes.className = "acoes-responsavel";
 
-      const textoValor = document.createElement("small");
-
-      textoValor.textContent = valor === undefined
-        ? "Valor ainda não definido"
-        : "Valor: " + valor.toLocaleString("pt-BR", {
-            style: "currency",
-            currency: "BRL"
-          });
-
-      informacoes.appendChild(nome);
-      informacoes.appendChild(textoValor);
-
-      const acoes = document.createElement("div");
-      acoes.className = "acoes-responsavel";
-
-      const botaoEditar = criarBotao(
+    acoes.appendChild(
+      criarBotao(
         "Editar",
-        () => editarTipo(tipo, valor)
-      );
-
-      const botaoSituacao = criarBotao(
-        tipo.ativo ? "Desativar" : "Reativar",
-        () => alterarAtividadeTipo(tipo)
-      );
-
-      acoes.appendChild(botaoEditar);
-      acoes.appendChild(botaoSituacao);
-
-      item.appendChild(informacoes);
-      item.appendChild(acoes);
-
-      listaTipos.appendChild(item);
-    }
-
-  } catch (erro) {
-    console.error(
-      "Erro ao carregar tipos e valores:",
-      erro
+        () => editarTipo(tipo, valorAtual)
+      )
     );
 
-    listaTipos.textContent =
-      "Não foi possível carregar as atividades e seus valores.";
+    acoes.appendChild(
+      criarBotao(
+        tipo.ativo ? "Desativar" : "Reativar",
+        () => alterarAtividadeTipo(tipo)
+      )
+    );
 
-    throw erro;
+    item.appendChild(informacoes);
+    item.appendChild(acoes);
+
+    listaTipos.appendChild(item);
   }
 }
-
 
 // ==========================================
 // EDITAR NOME E VALOR DA ATIVIDADE
 // ==========================================
 
 async function editarTipo(tipo, valorAtual) {
-  if (!acessoMaster || !clienteSupabase) return;
-
-  const respostaNome = window.prompt(
-    "Nome da atividade:",
-    tipo.nome
-  );
-
-  if (respostaNome === null) return;
-
-  const novoNome = respostaNome.trim();
-
-  if (!validarNome(novoNome)) {
-    alert("Informe um nome com até 150 caracteres.");
-    return;
-  }
-
-  const valorAnterior = valorAtual === undefined
-    ? ""
-    : valorAtual.toFixed(2).replace(".", ",");
-
-  const respostaValor = window.prompt(
-    "Valor da atividade (R$):",
-    valorAnterior
-  );
-
-  if (respostaValor === null) return;
-
-  const textoValor = respostaValor.trim()
-    .replace(",", ".");
-
-  const novoValor = Number(textoValor);
-
-  if (
-    textoValor === "" ||
-    !Number.isFinite(novoValor) ||
-    novoValor < 0 ||
-    novoValor > 9999999999.99 ||
-    Math.abs(
-      novoValor * 100 - Math.round(novoValor * 100)
-    ) > 0.000001
-  ) {
-    alert(
-      "Informe um valor válido com até duas casas decimais."
-    );
-    return;
-  }
-
-  if (
-    novoNome === tipo.nome &&
-    valorAtual !== undefined &&
-    novoValor === valorAtual
-  ) {
-    return;
-  }
-
-  mensagemTipo.textContent =
-    "Salvando alterações...";
-
   try {
+    await exigirMaster();
+
+    const respostaNome = window.prompt(
+      "Nome da atividade:",
+      tipo.nome
+    );
+
+    if (respostaNome === null) return;
+
+    const novoNome = respostaNome.trim();
+
+    if (!validarNome(novoNome)) {
+      alert("Informe um nome com até 150 caracteres.");
+      return;
+    }
+
+    const valorAnterior = valorAtual === undefined
+      ? ""
+      : valorAtual.toFixed(2).replace(".", ",");
+
+    const respostaValor = window.prompt(
+      "Valor da atividade (R$):",
+      valorAnterior
+    );
+
+    if (respostaValor === null) return;
+
+    const novoValor = validarValor(respostaValor);
+
+    if (
+      novoNome === tipo.nome &&
+      novoValor === valorAtual
+    ) {
+      return;
+    }
+
+    await exigirMaster();
+
+    mensagemTipo.textContent =
+      "Salvando alterações...";
+
     const { error } = await clienteSupabase
       .rpc("bonavere_editar_tipo_com_valor", {
         p_tipo_id: tipo.id,
@@ -538,34 +507,33 @@ async function editarTipo(tipo, valorAtual) {
     );
 
     mensagemTipo.textContent =
+      erro?.message ||
       "Não foi possível atualizar a atividade.";
   }
 }
 
-
 // ==========================================
-// DESATIVAR OU REATIVAR TIPO DE ATIVIDADE
+// DESATIVAR OU REATIVAR TIPO
 // ==========================================
 
 async function alterarAtividadeTipo(tipo) {
-  if (!acessoMaster || !clienteSupabase) return;
-
-  const novoEstado = !tipo.ativo;
-
-  const acao = novoEstado
-    ? "reativar"
-    : "desativar";
-
-  const confirmado = window.confirm(
-    `Deseja ${acao} a atividade "${tipo.nome}"?`
-  );
-
-  if (!confirmado) return;
-
-  mensagemTipo.textContent =
-    "Atualizando situação da atividade...";
-
   try {
+    await exigirMaster();
+
+    const novoEstado = !tipo.ativo;
+    const acao = novoEstado ? "reativar" : "desativar";
+
+    const confirmado = window.confirm(
+      `Deseja ${acao} a atividade "${tipo.nome}"?`
+    );
+
+    if (!confirmado) return;
+
+    await exigirMaster();
+
+    mensagemTipo.textContent =
+      "Atualizando situação da atividade...";
+
     const { data, error } = await clienteSupabase
       .from("bonavere_tipos")
       .update({ ativo: novoEstado })
@@ -574,10 +542,8 @@ async function alterarAtividadeTipo(tipo) {
 
     if (error) throw error;
 
-    if (!data || data.length !== 1) {
-      throw new Error(
-        "Alteração não confirmada pelo banco."
-      );
+    if (data?.length !== 1) {
+      throw new Error("Alteração não confirmada.");
     }
 
     await carregarTipos();
@@ -598,43 +564,28 @@ async function alterarAtividadeTipo(tipo) {
 }
 
 // ==========================================
-// CADASTRAR TIPO DE ATIVIDADE
+// CADASTRAR TIPO DE ATIVIDADE COM VALOR
 // ==========================================
-
- // ==========================================
- // CADASTRAR TIPO DE ATIVIDADE
- // ==========================================
 
 formTipo.addEventListener(
   "submit",
   async (evento) => {
     evento.preventDefault();
 
-    if (!acessoMaster || !clienteSupabase) {
-      mensagemTipo.textContent =
-        "Você não possui autorização.";
-      return;
-    }
-
     const nome = nomeTipo.value.trim();
-    const valorInformado = valorTipo.value.trim();
-    const valor = Number(valorInformado);
+    let valor;
 
-    if (!validarNome(nome)) {
-      mensagemTipo.textContent =
-        "Informe uma atividade com até 150 caracteres.";
-      return;
-    }
+    try {
+      if (!validarNome(nome)) {
+        throw new Error(
+          "Informe uma atividade com até 150 caracteres."
+        );
+      }
 
-    if (
-      valorInformado === "" ||
-      !Number.isFinite(valor) ||
-      valor < 0 ||
-      valor > 9999999999.99 ||
-      Math.abs(valor * 100 - Math.round(valor * 100)) > 0.000001
-    ) {
-      mensagemTipo.textContent =
-        "Informe um valor válido em reais, com até duas casas decimais.";
+      valor = validarValor(valorTipo.value);
+
+    } catch (erro) {
+      mensagemTipo.textContent = erro.message;
       return;
     }
 
@@ -643,6 +594,8 @@ formTipo.addEventListener(
     mensagemTipo.textContent = "";
 
     try {
+      await exigirMaster();
+
       const { data, error } = await clienteSupabase
         .rpc("bonavere_cadastrar_tipo_com_valor", {
           p_nome: nome,
@@ -653,7 +606,7 @@ formTipo.addEventListener(
 
       if (!data) {
         throw new Error(
-          "O cadastro não foi confirmado pelo banco."
+          "Cadastro não confirmado pelo banco."
         );
       }
 
@@ -672,56 +625,65 @@ formTipo.addEventListener(
       );
 
       mensagemTipo.textContent =
-        "Não foi possível cadastrar a atividade. Verifique os dados ou consulte o console.";
+        "Não foi possível cadastrar a atividade. Verifique os dados ou o console.";
 
     } finally {
-      salvarTipo.disabled = false;
+      salvarTipo.disabled = !acessoMaster;
       salvarTipo.textContent = "Cadastrar";
     }
   }
 );
 
-
 // ==========================================
-// VERIFICAR ACESSO MASTER
+// AUTENTICACAO E INICIALIZACAO
 // ==========================================
 
 async function iniciarAdministracao() {
-  painelMaster.classList.add("oculto");
+  bloquearPainel();
 
-  salvarResponsavel.disabled = true;
-  salvarTipo.disabled = true;
-
-  acessoMaster = false;
+  mensagemAdmin.textContent =
+    "Verificando acesso administrativo...";
 
   try {
-    if (
-      SUPABASE_PUBLIC_KEY ===
-      "COLE_AQUI_SUA_CHAVE_PUBLISHABLE"
-    ) {
+    if (!window.GestorBCASessao) {
       throw new Error(
-        "Chave pública não configurada."
+        "Configuração de sessão não carregada."
       );
     }
 
-    if (!window.supabase) {
-      throw new Error(
-        "Biblioteca Supabase indisponível."
-      );
-    }
+    clienteSupabase =
+      window.GestorBCASessao.criarCliente();
 
-    clienteSupabase = window.supabase.createClient(
-      SUPABASE_URL,
-      SUPABASE_PUBLIC_KEY
-    );
+    // 1. Confirmar o usuario autenticado.
 
     const { data, error } =
       await clienteSupabase.auth.getUser();
 
-    if (error || !data.user) {
+    if (error || !data?.user) {
       window.location.replace("./index.html");
       return;
     }
+
+    // 2. Conferir a validade da sessao.
+
+    const ultima =
+      window.GestorBCASessao.obterUltimaAtividade();
+
+    const agora = Date.now();
+
+    if (
+      ultima === null ||
+      ultima > agora ||
+      agora - ultima >=
+        window.GestorBCASessao.TEMPO_INATIVIDADE
+    ) {
+      await window.GestorBCASessao
+        .encerrarPorInatividade(clienteSupabase);
+
+      return;
+    }
+
+    // 3. Verificar autorizacao Master.
 
     const {
       data: perfil,
@@ -735,27 +697,43 @@ async function iniciarAdministracao() {
     if (erroPerfil) throw erroPerfil;
 
     if (
-      !perfil ||
-      perfil.master !== true ||
-      perfil.autorizado !== true
+      perfil?.master !== true ||
+      perfil?.autorizado !== true
     ) {
       mensagemAdmin.textContent =
         "Acesso restrito ao administrador Master.";
+
       return;
     }
 
     acessoMaster = true;
 
-    painelMaster.classList.remove("oculto");
-    mensagemAdmin.textContent = "";
+    await exigirMaster();
 
-    salvarResponsavel.disabled = false;
-    salvarTipo.disabled = false;
+    // 4. Carregar os cadastros, mantendo
+    // o painel oculto ate terminar.
 
     await Promise.all([
       carregarResponsaveis(),
       carregarTipos()
     ]);
+
+    await exigirMaster();
+
+    // 5. Liberar o painel.
+
+    painelMaster.classList.remove("oculto");
+
+    salvarResponsavel.disabled = false;
+    salvarTipo.disabled = false;
+
+    mensagemAdmin.textContent = "";
+
+    // 6. Iniciar o monitoramento.
+
+    window.GestorBCASessao.iniciarMonitoramento(
+      clienteSupabase
+    );
 
   } catch (erro) {
     console.error(
@@ -763,15 +741,15 @@ async function iniciarAdministracao() {
       erro
     );
 
-    acessoMaster = false;
-    painelMaster.classList.add("oculto");
-
-    salvarResponsavel.disabled = true;
-    salvarTipo.disabled = true;
+    bloquearPainel();
 
     mensagemAdmin.textContent =
       "Não foi possível verificar o acesso administrativo.";
   }
 }
+
+// ==========================================
+// INICIALIZAR
+// ==========================================
 
 iniciarAdministracao();
