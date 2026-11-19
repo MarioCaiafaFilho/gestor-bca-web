@@ -830,3 +830,211 @@ table td:nth-child(7) {
   padding: 8px;
   box-sizing: border-box;
 }
+
+/* ==========================================
+   GESTOR BCA - AGENDA
+========================================== */
+
+#conteudoAgenda .agenda-cabecalho,
+#conteudoAgenda .agenda-linha {
+  display: grid;
+  grid-template-columns:
+    110px
+    90px
+    minmax(240px, 1fr)
+    150px;
+  gap: 14px;
+  align-items: center;
+  padding: 13px 16px;
+}
+
+#conteudoAgenda .agenda-cabecalho {
+  background: #173b65;
+  color: #ffffff;
+  border-radius: 8px 8px 0 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+#conteudoAgenda .agenda-lista {
+  width: 100%;
+}
+
+#conteudoAgenda .agenda-mes {
+  margin-top: 22px;
+}
+
+#conteudoAgenda .agenda-mes-titulo {
+  padding: 12px 16px;
+  background: #e8eef5;
+  color: #173b65;
+  border-left: 4px solid #173b65;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+#conteudoAgenda .agenda-linha {
+  border-bottom: 1px solid #dce4ed;
+  background: #ffffff;
+  font-size: 14px;
+}
+
+#conteudoAgenda .agenda-linha:hover {
+  filter: brightness(0.97);
+}
+
+/* Cores conforme a proximidade */
+
+#conteudoAgenda .agenda-atencao {
+  background: #fff3ed;
+}
+
+#conteudoAgenda .agenda-proxima {
+  background: #ffd9d2;
+}
+
+#conteudoAgenda .agenda-urgente {
+  background: #ffb5ad;
+}
+
+#conteudoAgenda .agenda-atrasada {
+  background: #fca5a5;
+}
+
+#conteudoAgenda .agenda-concluida {
+  background: #c6f2d4;
+}
+
+#conteudoAgenda .agenda-cancelada {
+  background: #e5e7eb;
+}
+
+/* Edicao direta */
+
+#conteudoAgenda .agenda-campo-editavel {
+  cursor: pointer;
+  border-radius: 5px;
+  padding: 5px 6px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+#conteudoAgenda .agenda-campo-editavel:hover {
+  background: rgba(255, 255, 255, 0.45);
+}
+
+#conteudoAgenda .agenda-campo-editavel:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+#conteudoAgenda .agenda-campo-editavel input,
+#conteudoAgenda .agenda-campo-editavel select {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 8px;
+  border: 1px solid #173b65;
+  border-radius: 5px;
+  font: inherit;
+}
+
+/* Formulario de novo compromisso */
+
+#modalCompromisso {
+  width: min(95vw, 720px);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+#modalCompromisso .campos-formulario {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin: 20px 0;
+}
+
+#modalCompromisso .campos-formulario label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+#modalCompromisso .campos-formulario input,
+#modalCompromisso .campos-formulario select,
+#modalCompromisso .campos-formulario textarea {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+#modalCompromisso .campo-largo {
+  grid-column: 1 / -1;
+}
+
+#modalCompromisso .acoes-formulario {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* Telas menores */
+
+@media (max-width: 700px) {
+  #conteudoAgenda .agenda-cabecalho,
+  #conteudoAgenda .agenda-linha {
+    grid-template-columns:
+      85px
+      75px
+      minmax(150px, 1fr)
+      120px;
+    gap: 8px;
+    padding: 11px 10px;
+    font-size: 12px;
+  }
+
+  #conteudoAgenda .agenda-lista {
+    overflow-x: auto;
+  }
+
+  #modalCompromisso .campos-formulario {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================
+   AGENDA - SITUACAO DO COMPROMISSO
+========================================== */
+
+#conteudoAgenda .agenda-tipo-situacao {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  min-width: 0;
+}
+
+#conteudoAgenda .agenda-seletor-situacao {
+  width: 100%;
+  min-width: 0;
+  padding: 6px;
+  font: inherit;
+  font-size: 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.85);
+  color: #334155;
+  cursor: pointer;
+}
+
+#conteudoAgenda .agenda-seletor-situacao:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+#conteudoAgenda .agenda-seletor-situacao:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}

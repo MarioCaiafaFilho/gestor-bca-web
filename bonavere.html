@@ -203,18 +203,188 @@
 
 
 <!-- CONTEUDO DA ABA AGENDA -->
+
+<!-- ==========================================
+     GESTOR BCA - AGENDA
+========================================== -->
 <div id="conteudoAgenda" class="conteudo-aba" hidden>
+
   <section class="painel">
+
     <div class="titulo-secao">
-      <h2>Agenda</h2>
+      <div>
+        <h2>Agenda de Compromissos</h2>
+        <p>
+          Audiências, processos e compromissos
+          organizados por mês.
+        </p>
+      </div>
+
+      <button
+        id="novoCompromisso"
+        type="button"
+        class="botao-primario"
+        disabled>
+        + Novo compromisso
+      </button>
     </div>
-    <p>Agenda profissional em desenvolvimento.</p>
+
+    <!-- Cabecalho das colunas -->
+    <div class="agenda-cabecalho">
+      <span>Data</span>
+      <span>Hora</span>
+      <span>Compromisso</span>
+      <span>Tipo</span>
+    </div>
+
+    <!-- Meses e compromissos -->
+    <div id="listaAgenda" class="agenda-lista">
+      <p class="vazio">
+        Aguardando carregamento da Agenda.
+      </p>
+    </div>
+
+    <p id="totalAgenda" class="contador">
+      0 compromissos
+    </p>
+
   </section>
+
 </div>
+<!-- FIM DA AGENDA -->
+
 
   </main>
   
 <!-- FORMULARIO DE AUDIENCIAS -->
+
+<!-- ==========================================
+     GESTOR BCA - FORMULARIO DA AGENDA
+========================================== -->
+
+<dialog id="modalCompromisso" class="modal-prazo">
+
+  <form id="formCompromisso">
+
+    <h2 id="tituloModalCompromisso">
+      Novo compromisso
+    </h2>
+
+    <input type="hidden" name="id">
+
+    <div class="campos-formulario">
+
+      <label>
+        Compromisso
+        <input
+          type="text"
+          name="titulo"
+          maxlength="200"
+          required
+        >
+      </label>
+
+      <label>
+        Tipo
+        <select name="tipo" required>
+          <option value="atendimento">Atendimento</option>
+          <option value="reuniao">Reunião</option>
+          <option value="diligencia">Diligência</option>
+          <option value="outros">Outros</option>
+        </select>
+      </label>
+
+      <label>
+        Data
+        <input
+          type="date"
+          name="data_compromisso"
+          required
+        >
+      </label>
+
+      <label>
+        Horário
+        <input
+          type="time"
+          name="horario_inicio"
+        >
+      </label>
+
+      <label>
+        Horário de término
+        <input
+          type="time"
+          name="horario_fim"
+        >
+      </label>
+
+      <label>
+        Responsável
+        <select name="responsavel_id">
+          <option value="">Selecione</option>
+        </select>
+      </label>
+
+      <label>
+        Situação
+        <select name="situacao" required>
+          <option value="agendado">Agendado</option>
+          <option value="concluido">Concluído</option>
+          <option value="cancelado">Cancelado</option>
+        </select>
+      </label>
+
+      <label>
+        Local ou link
+        <input
+          type="text"
+          name="local_link"
+        >
+      </label>
+
+      <label class="campo-largo">
+        Descrição
+        <textarea
+          name="descricao"
+          rows="3"
+        ></textarea>
+      </label>
+
+      <label class="campo-largo">
+        Observações
+        <textarea
+          name="observacao"
+          rows="3"
+        ></textarea>
+      </label>
+
+    </div>
+
+    <div class="acoes-formulario">
+
+      <button
+        type="button"
+        id="cancelarCompromisso">
+        Cancelar
+      </button>
+
+      <button
+        type="submit"
+        id="salvarCompromisso"
+        class="botao-primario"
+        disabled>
+        Salvar compromisso
+      </button>
+
+    </div>
+
+  </form>
+
+</dialog>
+
+<!-- FIM DO FORMULARIO DA AGENDA -->
+
 <dialog id="modalAudiencia" class="modal-prazo">
   <form id="formAudiencia">
 
@@ -391,6 +561,8 @@
 <script src="./js/sessao.js" defer></script>
 <script src="./js/bonavere.js" defer></script>
 <script src="./js/audiencias.js" defer></script>
+<script src="./js/agenda.js" defer></script>
+
 
 </body>
 </html>

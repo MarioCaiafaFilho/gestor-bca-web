@@ -1576,13 +1576,29 @@ function selecionarAbaBonavere(nomeAba) {
   );
 }
 
-botoesAbas.forEach((botao) => {
+b
+botoesAbas.forEach(botao => {
   botao.addEventListener("click", () => {
-    selecionarAbaBonavere(botao.dataset.aba);
+    const aba = botao.dataset.aba;
+
+    selecionarAbaBonavere(aba);
+
+    sessionStorage.setItem(
+      "gestor_bca_aba_bonavere",
+      aba
+    );
   });
 });
 
-selecionarAbaBonavere("prazos");
+
+
+const abaSalva = sessionStorage.getItem(
+  "gestor_bca_aba_bonavere"
+);
+
+selecionarAbaBonavere(
+  conteudosAbas[abaSalva] ? abaSalva : "prazos"
+);
 
 
 botoesAbas.forEach((botao) => {
