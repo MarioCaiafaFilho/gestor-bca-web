@@ -166,17 +166,20 @@ linha.appendChild(celulaObservacoes);
     }
   }
 
-  botaoNovo.addEventListener("click", async () => {
-    if (!autorizado) return;
+  
+botaoNovo.addEventListener("click", () => {
+  if (!autorizado) return;
 
-    try {
-      const acessoAtual = await conferirAcesso();
+  formulario.reset();
+  formulario.elements.namedItem("id").value = "";
 
-      if (!acessoAtual) {
-        autorizado = false;
-        botaoNovo.disabled = true;
-        return;
-      }
+  document.getElementById(
+    "tituloModalAudiencia"
+  ).textContent = "Cadastrar audiência";
+
+  botaoSalvar.disabled = false;
+  modal.showModal();
+});
 
       
 
