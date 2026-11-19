@@ -1370,6 +1370,48 @@ function textoOuNulo(valor) {
   return String(valor || "").trim() || null;
 }
 
+function validarDataFormulario(valor, nomeCampo) {
+  const texto = String(valor || "").trim();
+
+  if (!texto) return null;
+
+  const partes = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(texto);
+
+  if (!partes) {
+    throw new Error(
+      `${nomeCampo}: informe a data completa em DD/MM/AAAA.`
+    );
+  }
+
+  const dia = Number(partes[1]);
+  const mes = Number(partes[2]);
+  const ano = Number(partes[3]);
+
+  if (ano < 1900 || ano > 2199) {
+    throw new Error(
+      `${nomeCampo}: informe um ano válido entre 1900 e 2199.`
+    );
+  }
+
+  const data = new Date(Date.UTC(ano, mes - 1, dia));
+
+  if (
+    data.getUTCFullYear() !== ano ||
+    data.getUTCMonth() !== mes - 1 ||
+    data.getUTCDate() !== dia
+  ) {
+    throw new Error(
+      `${nomeCampo}: a data informada não existe.`
+    );
+  }
+
+  return [
+    String(ano).padStart(4, "0"),
+    String(mes).padStart(2, "0"),
+    String(dia).padStart(2, "0")
+  ].join("-");
+}
+
 formulario.addEventListener(
   "submit",
   async (evento) => {
@@ -1388,6 +1430,28 @@ formulario.addEventListener(
 
     const dados = new FormData(formulario);
 
+    let datasValidadas;
+
+    try {
+      datasValidadas = {
+        publicacao: validarDataFormulario(
+          dados.get("publicacao"),
+          "Publicação"
+        ),
+        data_limite: validarDataFormulario(
+          dados.get("data_limite"),
+          "Data limite"
+        ),
+        vencimento: validarDataFormulario(
+          dados.get("vencimento"),
+          "Vencimento"
+        )
+      };
+    } catch (erro) {
+      alert(erro.message);
+      return;
+    }
+
     const novoProcesso = {
       numero_processo: textoOuNulo(
         dados.get("numero_processo")
@@ -1401,17 +1465,13 @@ formulario.addEventListener(
         dados.get("cliente")
       ),
 
-      publicacao: textoOuNulo(
-        dados.get("publicacao")
-      ),
+     
+      publicacao: datasValidadas.publicacao,
 
-      data_limite: textoOuNulo(
-        dados.get("data_limite")
-      ),
+      data_limite: datasValidadas.data_limite,
 
-      vencimento: textoOuNulo(
-        dados.get("vencimento")
-      ),
+      vencimento: datasValidadas.vencimento,
+
 
       observacao: textoOuNulo(
         dados.get("observacao")
