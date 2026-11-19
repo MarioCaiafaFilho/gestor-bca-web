@@ -315,15 +315,17 @@
 
         let novoValor = entrada.value.trim();
 
-        if (campo === "data_audiencia") {
-          try {
-            novoValor = validarDataAudiencia(novoValor);
-          } catch (erro) {
-            alert(erro.message);
-            entrada.focus();
-            return;
-          }
-        }
+       
+if (campo === "data_audiencia") {
+  try {
+    novoValor = validarDataAudiencia(novoValor);
+  } catch (erro) {
+    cancelar();
+    alert(erro.message);
+    return;
+  }
+}
+
         const anterior = audiencia[campo] ?? "";
 
         if (

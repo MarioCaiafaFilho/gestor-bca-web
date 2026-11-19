@@ -421,15 +421,17 @@ entrada.value = formatarData(item.data);
 
         let novoValor = entrada.value;
 
-        if (ehData) {
-          try {
-            novoValor = validarDataAgenda(novoValor);
-          } catch (erro) {
-            alert(erro.message);
-            entrada.focus();
-            return;
-          }
-        }
+        
+if (ehData) {
+  try {
+    novoValor = validarDataAgenda(novoValor);
+  } catch (erro) {
+    cancelar();
+    alert(erro.message);
+    return;
+  }
+}
+
 
         const valorAnterior = ehData
           ? item.data
