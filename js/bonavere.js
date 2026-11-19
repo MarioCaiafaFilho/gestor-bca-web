@@ -1536,18 +1536,9 @@ async function iniciarBonavere() {
   }
 }
 
-// ==========================================
-// INICIALIZACAO
-// ==========================================
-
  // ==========================================
- // NAVEGACAO ENTRE AS ABAS DO BONAVERE
+ // INICIALIZACAO E NAVEGACAO
  // ==========================================
-
-
-// ==========================================
-// NAVEGACAO ENTRE AS ABAS DO BONAVERE
-// ==========================================
 
 const botoesAbas = document.querySelectorAll(
   ".aba-bonavere"
@@ -1562,7 +1553,7 @@ const conteudosAbas = {
 function selecionarAbaBonavere(nomeAba) {
   if (!conteudosAbas[nomeAba]) return;
 
-  botoesAbas.forEach((botao) => {
+  botoesAbas.forEach(botao => {
     const ativa = botao.dataset.aba === nomeAba;
 
     botao.classList.toggle("ativa", ativa);
@@ -1576,13 +1567,14 @@ function selecionarAbaBonavere(nomeAba) {
   );
 }
 
-b
+// Alternar entre Prazos, Audiencias e Agenda.
 botoesAbas.forEach(botao => {
   botao.addEventListener("click", () => {
     const aba = botao.dataset.aba;
 
     selecionarAbaBonavere(aba);
 
+    // Guardar a aba para preservar apos F5.
     sessionStorage.setItem(
       "gestor_bca_aba_bonavere",
       aba
@@ -1590,8 +1582,7 @@ botoesAbas.forEach(botao => {
   });
 });
 
-
-
+// Recuperar a aba selecionada anteriormente.
 const abaSalva = sessionStorage.getItem(
   "gestor_bca_aba_bonavere"
 );
@@ -1600,17 +1591,5 @@ selecionarAbaBonavere(
   conteudosAbas[abaSalva] ? abaSalva : "prazos"
 );
 
-
-botoesAbas.forEach((botao) => {
-  botao.addEventListener("click", () => {
-    botoesAbas.forEach((item) => {
-      item.classList.remove("ativa");
-      item.setAttribute("aria-pressed", "false");
-    });
-
-    botao.classList.add("ativa");
-    botao.setAttribute("aria-pressed", "true");
-  });
-});
-
+// Iniciar o modulo e carregar as permissoes.
 iniciarBonavere();
