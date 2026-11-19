@@ -674,34 +674,25 @@ const mesAtual = [
   String(hoje.getMonth() + 1).padStart(2, "0")
 ].join("-");
 
-const mesesOrdenados = [...meses.entries()].sort(
-  ([mesA], [mesB]) => {
-    const futuroA = mesA >= mesAtual;
-    const futuroB = mesB >= mesAtual;
 
-    if (futuroA !== futuroB) {
-      return futuroA ? -1 : 1;
-    }
 
-    return futuroA
-      ? mesA.localeCompare(mesB)
-      : mesB.localeCompare(mesA);
-  }
-);
+    const mesesOrdenados = [...meses.entries()].sort(
+      ([mesA], [mesB]) => {
+        const futuroA = mesA >= mesAtual;
+        const futuroB = mesB >= mesAtual;
 
-for (const [chave, compromissos] of mesesOrdenados) {
-```
+        if (futuroA !== futuroB) {
+          return futuroA ? -1 : 1;
+        }
 
-**O resultado:** meses atuais e futuros aparecerão primeiro, em ordem crescente; meses anteriores aparecerão depois, dos mais recentes aos mais antigos. Dentro de cada mês, manteremos a ordenação por data e horário que já configuramos.
+        return futuroA
+          ? mesA.localeCompare(mesB)
+          : mesB.localeCompare(mesA);
+      }
+    );
 
-Salve com **Ctrl + S** e execute no terminal:
-
-```powershell
-node --check .\js\agenda.js
-node --check .\js\bonavere.js
-```
-
-**Me informe se os dois comandos terminaram sem erros.** Assim, poderemos publicar as alterações em uma única atualização no GitHub e testar também o comportamento do F5, sem mexer nas proteções de sessão.      const [ano, mes] = chave.split("-").map(Number);
+    for (const [chave, compromissos] of mesesOrdenados) {
+      const [ano, mes] = chave.split("-").map(Number);
 
       const secao = criarElemento(
         "section",
@@ -722,6 +713,8 @@ node --check .\js\bonavere.js
 
       lista.appendChild(secao);
     }
+
+
 
     total.textContent =
       `${itens.length} compromisso(s)`;

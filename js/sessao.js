@@ -14,7 +14,7 @@
     "sb_publishable_IOUb057J98PySmHjKai1Eg_mR4rSIjB";
 
   // 15 minutos de inatividade.
-  const TEMPO_INATIVIDADE = 15 * 60 * 1000;
+  const TEMPO_INATIVIDADE = 30 * 60 * 1000;
 
   // Identificador da ultima atividade.
   const CHAVE_ATIVIDADE =
