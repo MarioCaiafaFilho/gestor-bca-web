@@ -1540,4 +1540,61 @@ async function iniciarBonavere() {
 // INICIALIZACAO
 // ==========================================
 
+ // ==========================================
+ // NAVEGACAO ENTRE AS ABAS DO BONAVERE
+ // ==========================================
+
+
+// ==========================================
+// NAVEGACAO ENTRE AS ABAS DO BONAVERE
+// ==========================================
+
+const botoesAbas = document.querySelectorAll(
+  ".aba-bonavere"
+);
+
+const conteudosAbas = {
+  prazos: document.getElementById("conteudoPrazos"),
+  audiencias: document.getElementById("conteudoAudiencias"),
+  agenda: document.getElementById("conteudoAgenda")
+};
+
+function selecionarAbaBonavere(nomeAba) {
+  if (!conteudosAbas[nomeAba]) return;
+
+  botoesAbas.forEach((botao) => {
+    const ativa = botao.dataset.aba === nomeAba;
+
+    botao.classList.toggle("ativa", ativa);
+    botao.setAttribute("aria-pressed", String(ativa));
+  });
+
+  Object.entries(conteudosAbas).forEach(
+    ([nome, conteudo]) => {
+      conteudo.hidden = nome !== nomeAba;
+    }
+  );
+}
+
+botoesAbas.forEach((botao) => {
+  botao.addEventListener("click", () => {
+    selecionarAbaBonavere(botao.dataset.aba);
+  });
+});
+
+selecionarAbaBonavere("prazos");
+
+
+botoesAbas.forEach((botao) => {
+  botao.addEventListener("click", () => {
+    botoesAbas.forEach((item) => {
+      item.classList.remove("ativa");
+      item.setAttribute("aria-pressed", "false");
+    });
+
+    botao.classList.add("ativa");
+    botao.setAttribute("aria-pressed", "true");
+  });
+});
+
 iniciarBonavere();
