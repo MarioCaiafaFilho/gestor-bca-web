@@ -736,3 +736,97 @@ table td:nth-child(7) {
     grid-template-columns: 1fr;
   }
 }
+
+/* ==========================================
+   BONAVERE - COLUNAS DE AUDIENCIAS
+========================================== */
+
+#conteudoAudiencias table {
+  table-layout: auto;
+}
+
+#conteudoAudiencias th:nth-child(4),
+#conteudoAudiencias td:nth-child(4) {
+  min-width: 220px;
+}
+
+#conteudoAudiencias th:nth-child(5),
+#conteudoAudiencias td:nth-child(5) {
+  min-width: 110px;
+  width: 110px;
+}
+
+#conteudoAudiencias td {
+  vertical-align: middle;
+}
+
+/* Campos editaveis - proxima etapa */
+
+#conteudoAudiencias .campo-editavel {
+  cursor: pointer;
+}
+
+#conteudoAudiencias .campo-editavel:hover {
+  background-color: #edf4fb;
+}
+
+#conteudoAudiencias .campo-editavel input,
+#conteudoAudiencias .campo-editavel select {
+  width: 100%;
+  min-width: 100px;
+  padding: 7px;
+  box-sizing: border-box;
+  font: inherit;
+  border: 1px solid #173b65;
+  border-radius: 5px;
+}
+
+/* AUDIENCIAS - CORES POR PROXIMIDADE */
+
+#conteudoAudiencias tbody tr.audiencia-atencao > td {
+  background-color: #fff3ed;
+}
+
+#conteudoAudiencias tbody tr.audiencia-proxima > td {
+  background-color: #ffd9d2;
+}
+
+#conteudoAudiencias tbody tr.audiencia-urgente > td {
+  background-color: #ffb5ad;
+}
+
+#conteudoAudiencias tbody tr.audiencia-atrasada > td {
+  background-color: #fca5a5;
+}
+
+#conteudoAudiencias tbody tr.audiencia-concluida > td {
+  background-color: #c6f2d4;
+}
+
+#conteudoAudiencias tbody tr.audiencia-cancelada > td {
+  background-color: #e5e7eb;
+}
+
+#conteudoAudiencias tbody tr:hover > td {
+  filter: brightness(0.97);
+}
+
+/* AUDIENCIAS - EDICAO DIRETA */
+
+#conteudoAudiencias td.campo-editavel {
+  cursor: pointer;
+}
+
+#conteudoAudiencias td.campo-editavel:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: -2px;
+}
+
+#conteudoAudiencias td.campo-editavel textarea {
+  width: 100%;
+  min-width: 180px;
+  resize: vertical;
+  font: inherit;
+  padding: 8px;
+  box-sizing: border-box;
+}
