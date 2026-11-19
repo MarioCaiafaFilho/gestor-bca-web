@@ -579,3 +579,88 @@ table td:nth-child(7) {
   opacity: 0.6;
   cursor: wait;
 }
+
+/* ==========================================
+   GESTOR BCA - NAVEGACAO BONAVERE
+   Prazos | Audiencias | Agenda
+========================================== */
+
+.abas-bonavere {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 24px 0;
+  padding: 6px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+
+.aba-bonavere {
+  flex: 1;
+  min-width: 120px;
+  padding: 13px 20px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: #334155;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease,
+              color 0.2s ease,
+              box-shadow 0.2s ease;
+}
+
+.aba-bonavere:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.aba-bonavere.ativa {
+  background: #173b65;
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12);
+}
+
+.aba-bonavere:focus-visible {
+  outline: 3px solid #60a5fa;
+  outline-offset: 2px;
+}
+
+/* Ocultar as abas nao selecionadas */
+
+.conteudo-aba[hidden] {
+  display: none !important;
+}
+
+/* Espacamento do conteudo */
+
+.conteudo-aba {
+  width: 100%;
+}
+
+/* Adaptacao para celular */
+
+@media (max-width: 600px) {
+  .abas-bonavere {
+    gap: 6px;
+    padding: 5px;
+  }
+
+  .aba-bonavere {
+    min-width: 90px;
+    padding: 11px 8px;
+    font-size: 13px;
+  }
+}
+
+/* Respeitar preferencias de movimento */
+
+@media (prefers-reduced-motion: reduce) {
+  .aba-bonavere {
+    transition: none;
+  }
+}
