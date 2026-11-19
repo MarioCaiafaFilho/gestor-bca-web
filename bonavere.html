@@ -294,14 +294,21 @@
         </select>
       </label>
 
-      <label>
-        Data
-        <input
-          type="date"
-          name="data_compromisso"
-          required
-        >
-      </label>
+     
+<label>
+  Data
+  <input
+    type="text"
+    name="data_compromisso"
+    placeholder="DD/MM/AAAA"
+    inputmode="numeric"
+    maxlength="10"
+    pattern="[0-9]{2}/[0-9]{2}/[0-9]{4}"
+    title="Informe a data no formato DD/MM/AAAA"
+    required
+  >
+</label>
+
 
       <label>
         Horário
@@ -411,10 +418,21 @@
         <input type="text" name="tribunal">
       </label>
 
-      <label>
-        Data da audiência
-        <input type="date" name="data_audiencia" required>
-      </label>
+      
+<label>
+  Data da audiência
+  <input
+    type="text"
+    name="data_audiencia"
+    placeholder="DD/MM/AAAA"
+    inputmode="numeric"
+    maxlength="10"
+    pattern="[0-9]{2}/[0-9]{2}/[0-9]{4}"
+    title="Informe a data no formato DD/MM/AAAA"
+    required
+  >
+</label>
+
 
       <label>
         Horário

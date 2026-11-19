@@ -39,6 +39,45 @@
     return `${partes[2]}/${partes[1]}/${partes[0]}`;
   }
 
+  function validarDataAgenda(valor) {
+    const texto = String(valor ?? "").trim();
+
+    const partes = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(texto);
+
+    if (!partes) {
+      throw new Error(
+        "Digite a data completa no formato DD/MM/AAAA."
+      );
+    }
+
+    const dia = Number(partes[1]);
+    const mes = Number(partes[2]);
+    const ano = Number(partes[3]);
+
+    if (ano < 1900 || ano > 2199) {
+      throw new Error(
+        "Informe um ano válido entre 1900 e 2199."
+      );
+    }
+
+    const data = new Date(Date.UTC(ano, mes - 1, dia));
+
+    if (
+      data.getUTCFullYear() !== ano ||
+      data.getUTCMonth() !== mes - 1 ||
+      data.getUTCDate() !== dia
+    ) {
+      throw new Error("A data informada não existe.");
+    }
+
+    return [
+      String(ano).padStart(4, "0"),
+      String(mes).padStart(2, "0"),
+      String(dia).padStart(2, "0")
+    ].join("-");
+  }
+
+
   function formatarHora(hora) {
     return hora ? hora.slice(0, 5) : "—";
   }
@@ -343,8 +382,13 @@ function ordenarItens(itens) {
       );
 
       if (ehData) {
-        entrada.type = "date";
-        entrada.value = item.data;
+       
+entrada.type = "text";
+entrada.inputMode = "numeric";
+entrada.maxLength = 10;
+entrada.placeholder = "DD/MM/AAAA";
+entrada.value = formatarData(item.data);
+
       } else {
         for (const [valor, texto] of Object.entries(nomesTipos)) {
           const opcao = document.createElement("option");
@@ -374,7 +418,18 @@ function ordenarItens(itens) {
       async function salvar() {
         if (encerrado) return;
 
-        const novoValor = entrada.value;
+
+        let novoValor = entrada.value;
+
+        if (ehData) {
+          try {
+            novoValor = validarDataAgenda(novoValor);
+          } catch (erro) {
+            alert(erro.message);
+            entrada.focus();
+            return;
+          }
+        }
 
         const valorAnterior = ehData
           ? item.data
@@ -919,6 +974,18 @@ formCompromisso.addEventListener("submit", async evento => {
 
     const campos = new FormData(formCompromisso);
 
+    let dataValidada;
+
+    try {
+      dataValidada = validarDataAgenda(
+        campos.get("data_compromisso")
+      );
+    } catch (erro) {
+      alert(erro.message);
+      return;
+    }
+
+
     function valorOuNulo(nome) {
       return String(campos.get(nome) ?? "").trim() || null;
     }
@@ -940,7 +1007,7 @@ formCompromisso.addEventListener("submit", async evento => {
     const compromisso = {
       titulo: valorOuNulo("titulo"),
       tipo: valorOuNulo("tipo"),
-      data_compromisso: valorOuNulo("data_compromisso"),
+data_compromisso: dataValidada,
       horario_inicio: horarioInicio,
       horario_fim: horarioFim,
       responsavel_id: valorOuNulo("responsavel_id"),

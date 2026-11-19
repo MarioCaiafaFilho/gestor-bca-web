@@ -45,6 +45,44 @@
       : data;
   }
 
+  function validarDataAudiencia(valor) {
+    const texto = String(valor ?? "").trim();
+
+    const partes = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(texto);
+
+    if (!partes) {
+      throw new Error(
+        "Digite a data completa no formato DD/MM/AAAA."
+      );
+    }
+
+    const dia = Number(partes[1]);
+    const mes = Number(partes[2]);
+    const ano = Number(partes[3]);
+
+    if (ano < 1900 || ano > 2199) {
+      throw new Error(
+        "Informe um ano válido entre 1900 e 2199."
+      );
+    }
+
+    const data = new Date(Date.UTC(ano, mes - 1, dia));
+
+    if (
+      data.getUTCFullYear() !== ano ||
+      data.getUTCMonth() !== mes - 1 ||
+      data.getUTCDate() !== dia
+    ) {
+      throw new Error("A data informada não existe.");
+    }
+
+    return [
+      String(ano).padStart(4, "0"),
+      String(mes).padStart(2, "0"),
+      String(dia).padStart(2, "0")
+    ].join("-");
+  }
+
   function diasAteAudiencia(data) {
     const [ano, mes, dia] = data.split("-").map(Number);
     const hoje = new Date();
@@ -238,10 +276,24 @@
       if (tipo === "textarea") {
         entrada.rows = 3;
       } else {
-        entrada.type = tipo;
+
+        entrada.type =
+          campo === "data_audiencia" ? "text" : tipo;
+
+        if (campo === "data_audiencia") {
+          entrada.inputMode = "numeric";
+          entrada.maxLength = 10;
+          entrada.placeholder = "DD/MM/AAAA";
+        }
       }
 
-      entrada.value = audiencia[campo] ?? "";
+
+      entrada.value =
+        campo === "data_audiencia"
+          ? (audiencia[campo]
+              ? formatarData(audiencia[campo])
+              : "")
+          : (audiencia[campo] ?? "");
 
       if (campo === "horario" && entrada.value) {
         entrada.value = entrada.value.slice(0, 5);
@@ -260,7 +312,18 @@
       async function salvar() {
         if (encerrado) return;
 
-        const novoValor = entrada.value.trim();
+
+        let novoValor = entrada.value.trim();
+
+        if (campo === "data_audiencia") {
+          try {
+            novoValor = validarDataAudiencia(novoValor);
+          } catch (erro) {
+            alert(erro.message);
+            entrada.focus();
+            return;
+          }
+        }
         const anterior = audiencia[campo] ?? "";
 
         if (
@@ -646,7 +709,10 @@
       ),
       cliente: valorOuNulo(dados.get("cliente")),
       tribunal: valorOuNulo(dados.get("tribunal")),
-      data_audiencia: dados.get("data_audiencia"),
+
+      data_audiencia: validarDataAudiencia(
+        dados.get("data_audiencia")
+      ),
       horario: dados.get("horario"),
       modalidade: dados.get("modalidade"),
       local_link: valorOuNulo(dados.get("local_link")),
@@ -720,7 +786,12 @@
           "Audiência salva, mas não foi possível atualizar a tabela."
         );
       } else {
-        alert("Não foi possível salvar a audiência.");
+        
+          alert(
+            erro.message ||
+            "Não foi possível salvar a audiência."
+          );
+alert("Não foi possível salvar a audiência.");
       }
 
     } finally {
