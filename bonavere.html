@@ -141,15 +141,66 @@
 </div>
 <!-- FIM DA ABA PRAZOS -->
 
+
 <!-- CONTEUDO DA ABA AUDIENCIAS -->
 <div id="conteudoAudiencias" class="conteudo-aba" hidden>
+
   <section class="painel">
+
     <div class="titulo-secao">
-      <h2>Audiências</h2>
+      <div>
+        <h2>Controle de Audiências</h2>
+        <p>
+          Cadastre e acompanhe as audiências
+          dos processos do escritório.
+        </p>
+      </div>
+
+      <button
+        id="novaAudiencia"
+        class="botao-primario"
+        type="button"
+        disabled>
+        + Nova audiência
+      </button>
     </div>
-    <p>Controle de audiências em desenvolvimento.</p>
+
+    <div class="tabela-rolagem">
+      <table>
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Horário</th>
+            <th>Processo</th>
+            <th>Cliente</th>
+            <th>Tribunal</th>
+            <th>Modalidade</th>
+            <th>Local / Link</th>
+            <th>Responsável</th>
+            <th>Situação</th>
+            <th>Observações</th>
+          </tr>
+        </thead>
+
+        <tbody id="listaAudiencias">
+          <tr>
+            <td colspan="10" class="vazio">
+              Nenhuma audiência carregada.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p id="totalAudiencias" class="contador">
+      0 audiências
+    </p>
+
   </section>
+
 </div>
+<!-- FIM DA ABA AUDIENCIAS -->
+
 
 <!-- CONTEUDO DA ABA AGENDA -->
 <div id="conteudoAgenda" class="conteudo-aba" hidden>
@@ -163,6 +214,98 @@
 
   </main>
   
+<!-- FORMULARIO DE AUDIENCIAS -->
+<dialog id="modalAudiencia" class="modal-prazo">
+  <form id="formAudiencia">
+
+    <h2 id="tituloModalAudiencia">
+      Cadastrar audiência
+    </h2>
+
+    <input type="hidden" name="id">
+
+    <div class="campos-formulario">
+
+      <label>
+        Número do processo
+        <input type="text" name="numero_processo">
+      </label>
+
+      <label>
+        Cliente
+        <input type="text" name="cliente">
+      </label>
+
+      <label>
+        Tribunal
+        <input type="text" name="tribunal">
+      </label>
+
+      <label>
+        Data da audiência
+        <input type="date" name="data_audiencia" required>
+      </label>
+
+      <label>
+        Horário
+        <input type="time" name="horario" required>
+      </label>
+
+      <label>
+        Modalidade
+        <select name="modalidade" required>
+          <option value="presencial">Presencial</option>
+          <option value="virtual">Virtual</option>
+        </select>
+      </label>
+
+      <label>
+        Local ou link
+        <input type="text" name="local_link">
+      </label>
+
+      <label>
+        Responsável
+        <select name="responsavel_id">
+          <option value="">Selecione</option>
+        </select>
+      </label>
+
+      <label>
+        Situação
+        <select name="situacao" required>
+          <option value="agendada">Agendada</option>
+          <option value="realizada">Realizada</option>
+          <option value="redesignada">Redesignada</option>
+          <option value="cancelada">Cancelada</option>
+        </select>
+      </label>
+
+      <label class="campo-largo">
+        Observações
+        <textarea name="observacao" rows="4"></textarea>
+      </label>
+
+    </div>
+
+    <div class="acoes-formulario">
+      <button type="button" id="cancelarAudiencia">
+        Cancelar
+      </button>
+
+      <button
+        type="submit"
+        id="salvarAudiencia"
+        class="botao-primario"
+        disabled>
+        Salvar audiência
+      </button>
+    </div>
+
+  </form>
+</dialog>
+<!-- FIM DO FORMULARIO DE AUDIENCIAS -->
+
 <dialog id="modalNovoPrazo" class="modal-prazo">
   <form id="formNovoPrazo">
 
@@ -247,5 +390,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="./js/sessao.js" defer></script>
 <script src="./js/bonavere.js" defer></script>
+<script src="./js/audiencias.js" defer></script>
+
 </body>
 </html>
