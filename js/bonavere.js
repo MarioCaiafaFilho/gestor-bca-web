@@ -387,11 +387,8 @@ function adicionarCelulaEditavel(
 // EDITAR DATAS
 // ==========================================
 
-function adicionarCelulaData(
-  linha,
-  processo,
-  campo
-) {
+
+function adicionarCelulaData(linha, processo, campo) {
   const celula = adicionarCelula(
     linha,
     formatarData(processo[campo])
@@ -406,53 +403,100 @@ function adicionarCelulaData(
   }
 
   celula.classList.add("celula-editavel");
-  celula.title =
-    "Clique para escolher uma data";
+  celula.title = "Clique para digitar a data (DD/MM/AAAA)";
 
   celula.addEventListener("click", () => {
     if (celula.querySelector("input")) return;
 
     const original = processo[campo] || "";
 
-    const entrada =
-      document.createElement("input");
-
-    entrada.type = "date";
+    const entrada = document.createElement("input");
+    entrada.type = "text";
+    entrada.inputMode = "numeric";
+    entrada.maxLength = 10;
+    entrada.placeholder = "DD/MM/AAAA";
     entrada.className = "entrada-celula";
-    entrada.value = original;
+    entrada.value = original ? formatarData(original) : "";
 
-    celula.style.backgroundColor = "";
-    celula.style.color = "";
+    entrada.setAttribute(
+      "aria-label",
+      "Digite a data no formato dia, mês e ano"
+    );
 
     celula.replaceChildren(entrada);
 
     let finalizada = false;
 
     function restaurar() {
-      celula.textContent =
-        formatarData(original);
+      celula.textContent = formatarData(original);
 
       if (campo === "vencimento") {
-        aplicarCorVencimento(
-          celula,
-          processo
+        aplicarCorVencimento(celula, processo);
+      }
+    }
+
+    function converterData(valor) {
+      const texto = valor.trim();
+
+      if (!texto) return null;
+
+      const resultado = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(texto);
+
+      if (!resultado) {
+        throw new Error(
+          "Digite a data completa no formato DD/MM/AAAA."
         );
       }
+
+      const dia = Number(resultado[1]);
+      const mes = Number(resultado[2]);
+      const ano = Number(resultado[3]);
+
+      if (ano < 1900 || ano > 2199) {
+        throw new Error(
+          "Informe um ano válido entre 1900 e 2199."
+        );
+      }
+
+      const dataTeste = new Date(
+        Date.UTC(ano, mes - 1, dia)
+      );
+
+      if (
+        dataTeste.getUTCFullYear() !== ano ||
+        dataTeste.getUTCMonth() !== mes - 1 ||
+        dataTeste.getUTCDate() !== dia
+      ) {
+        throw new Error("A data informada não existe.");
+      }
+
+      return [
+        String(ano).padStart(4, "0"),
+        String(mes).padStart(2, "0"),
+        String(dia).padStart(2, "0")
+      ].join("-");
     }
 
     async function salvar() {
       if (finalizada) return;
 
-      finalizada = true;
+      let novaData;
 
-      const novaData =
-        entrada.value || null;
+      try {
+        novaData = converterData(entrada.value);
+      } catch (erro) {
+        alert(erro.message);
+        entrada.focus();
+        return;
+      }
 
       if (novaData === (original || null)) {
+        finalizada = true;
         restaurar();
         return;
       }
 
+      finalizada = true;
       entrada.disabled = true;
 
       try {
@@ -461,42 +505,46 @@ function adicionarCelulaData(
           campo,
           novaData
         );
-
       } catch (erro) {
-        console.error(
-          "Erro ao editar data:",
-          erro
-        );
-
+        console.error("Erro ao editar data:", erro);
         restaurar();
-
-        alert(
-          "Não foi possível salvar a data."
-        );
+        alert("Não foi possível salvar a data.");
       }
     }
 
-    entrada.addEventListener(
-      "change",
-      salvar
-    );
-
-    entrada.addEventListener(
-      "keydown",
-      (evento) => {
-        if (evento.key === "Enter") {
-          evento.preventDefault();
-          salvar();
-
-        } else if (evento.key === "Escape") {
-          evento.preventDefault();
-          finalizada = true;
-          restaurar();
-        }
+    entrada.addEventListener("keydown", evento => {
+      if (evento.key === "Enter") {
+        evento.preventDefault();
+        salvar();
       }
-    );
+
+      if (evento.key === "Escape") {
+        evento.preventDefault();
+        finalizada = true;
+        restaurar();
+      }
+    });
+
+    entrada.addEventListener("blur", () => {
+      if (finalizada) return;
+
+      // Não salvar uma data incompleta ao sair do campo.
+      const texto = entrada.value.trim();
+
+      if (
+        texto &&
+        !/^\d{2}\/\d{2}\/\d{4}$/.test(texto)
+      ) {
+        finalizada = true;
+        restaurar();
+        return;
+      }
+
+      salvar();
+    });
 
     entrada.focus();
+    entrada.select();
   });
 
   return celula;
