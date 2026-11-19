@@ -167,39 +167,25 @@ linha.appendChild(celulaObservacoes);
   }
 
   
-botaoNovo.addEventListener("click", () => {
-  if (!autorizado) return;
+  // ==========================================
+  // ABRIR NOVA AUDIENCIA
+  // ==========================================
 
-  formulario.reset();
-  formulario.elements.namedItem("id").value = "";
+  botaoNovo.addEventListener("click", () => {
+    if (!autorizado) return;
 
-  document.getElementById(
-    "tituloModalAudiencia"
-  ).textContent = "Cadastrar audiência";
+    formulario.reset();
+    formulario.elements.namedItem("id").value = "";
 
-  botaoSalvar.disabled = false;
-  modal.showModal();
-});
+    document.getElementById(
+      "tituloModalAudiencia"
+    ).textContent = "Cadastrar audiência";
 
-      
-
-formulario.reset();
-formulario.elements.namedItem("id").value = "";
-
-document.getElementById(
-  "tituloModalAudiencia"
-).textContent = "Cadastrar audiência";
-
-botaoSalvar.disabled = false;
-modal.showModal();
-
-
-
-    } catch (erro) {
-      console.error("Erro de acesso:", erro);
-      alert("Não foi possível abrir o formulário.");
-    }
+    botaoSalvar.disabled = false;
+    modal.showModal();
   });
+
+
 
   botaoCancelar.addEventListener("click", () => {
     modal.close();
