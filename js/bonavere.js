@@ -282,11 +282,8 @@ async function atualizarCampo(
 // EDITAR CAMPOS DE TEXTO
 // ==========================================
 
-function adicionarCelulaEditavel(
-  linha,
-  processo,
-  campo
-) {
+
+function adicionarCelulaEditavel(linha, processo, campo) {
   const celula = adicionarCelula(
     linha,
     processo[campo] || "—"
@@ -299,13 +296,28 @@ function adicionarCelulaEditavel(
   celula.classList.add("celula-editavel");
   celula.title = "Clique para editar";
 
-  celula.addEventListener("click", () => {
-    if (celula.querySelector("input")) return;
+  let preparando = false;
+
+  celula.addEventListener("click", async () => {
+    if (preparando || celula.querySelector("input")) return;
+
+    preparando = true;
 
     const original = processo[campo] || "";
 
-    const entrada =
-      document.createElement("input");
+    try {
+      if (campo === "cliente") {
+        await exigirSessaoParaEdicao();
+        await carregarSugestoesClientesPrazo();
+      }
+    } catch (erro) {
+      console.error("Erro ao preparar edição:", erro);
+      alert("Não foi possível carregar os clientes cadastrados.");
+      preparando = false;
+      return;
+    }
+
+    const entrada = document.createElement("input");
 
     entrada.type = "text";
     entrada.className = "entrada-celula";
@@ -316,10 +328,23 @@ function adicionarCelulaEditavel(
       `Editar ${campo}`
     );
 
+    if (campo === "cliente") {
+      entrada.setAttribute(
+        "list",
+        "listaSugestoesClientesPrazo"
+      );
+
+      entrada.setAttribute(
+        "autocomplete",
+        "off"
+      );
+
+      entrada.placeholder = "Digite o nome do cliente";
+    }
+
     celula.replaceChildren(entrada);
 
-    entrada.focus();
-    entrada.select();
+    preparando = false;
 
     let finalizada = false;
 
@@ -330,15 +355,28 @@ function adicionarCelulaEditavel(
     async function salvar() {
       if (finalizada) return;
 
-      finalizada = true;
-
-      const novoValor = entrada.value.trim();
+      let novoValor = entrada.value.trim();
 
       if (novoValor === original.trim()) {
+        finalizada = true;
         restaurar();
         return;
       }
 
+      if (campo === "cliente") {
+        try {
+          novoValor = validarClienteSelecionadoPrazo(
+            novoValor
+          );
+        } catch (erro) {
+          finalizada = true;
+          restaurar();
+          alert(erro.message);
+          return;
+        }
+      }
+
+      finalizada = true;
       entrada.disabled = true;
 
       try {
@@ -347,7 +385,6 @@ function adicionarCelulaEditavel(
           campo,
           novoValor || null
         );
-
       } catch (erro) {
         console.error(
           "Erro ao editar texto:",
@@ -362,26 +399,26 @@ function adicionarCelulaEditavel(
       }
     }
 
-    entrada.addEventListener(
-      "keydown",
-      (evento) => {
-        if (evento.key === "Enter") {
-          evento.preventDefault();
-          salvar();
-
-        } else if (evento.key === "Escape") {
-          evento.preventDefault();
-          finalizada = true;
-          restaurar();
-        }
+    entrada.addEventListener("keydown", evento => {
+      if (evento.key === "Enter") {
+        evento.preventDefault();
+        salvar();
+      } else if (evento.key === "Escape") {
+        evento.preventDefault();
+        finalizada = true;
+        restaurar();
       }
-    );
+    });
 
     entrada.addEventListener("blur", salvar);
+
+    entrada.focus();
+    entrada.select();
   });
 
   return celula;
 }
+
 
 // ==========================================
 // EDITAR DATAS
