@@ -803,17 +803,44 @@ if (campo === "cliente") {
     () => modal.close()
   );
 
+ 
   function obterDadosAudiencia() {
     const dados = new FormData(formulario);
+
+    // Validar o cliente diretamente, sem depender
+    // de outra função que possa estar ausente.
+    const nomeDigitado = String(
+      dados.get("cliente") ?? ""
+    ).trim();
+
+    if (!nomeDigitado) {
+      throw new Error(
+        "Selecione um cliente cadastrado."
+      );
+    }
+
+    const clienteEncontrado = Array.from(
+      listaSugestoes.options
+    ).find(opcao =>
+      opcao.value.localeCompare(
+        nomeDigitado,
+        "pt-BR",
+        { sensitivity: "base" }
+      ) === 0
+    );
+
+    if (!clienteEncontrado) {
+      throw new Error(
+        "Cliente não encontrado. Selecione um cliente cadastrado e ativo."
+      );
+    }
 
     return {
       numero_processo: valorOuNulo(
         dados.get("numero_processo")
       ),
 
-      cliente: validarClienteAudiencia(
-        dados.get("cliente")
-      ),
+      cliente: clienteEncontrado.value,
 
       tribunal: valorOuNulo(
         dados.get("tribunal")
