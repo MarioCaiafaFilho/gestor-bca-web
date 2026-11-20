@@ -1139,3 +1139,126 @@ table td:nth-child(7) {
     overflow-x: visible;
   }
 }
+
+/* ==========================================
+   BONAVERE - CADASTRO DE CLIENTES
+   ========================================== */
+
+/* Pesquisa de clientes */
+
+#conteudoClientes .clientes-filtros {
+  padding: 0 24px 20px;
+}
+
+#pesquisarClienteBonavere {
+  width: min(100%, 460px);
+  padding: 12px 15px;
+  border: 1px solid #cbd9e8;
+  border-radius: 9px;
+  font: inherit;
+  font-size: 14px;
+  color: #25364a;
+  background: #ffffff;
+}
+
+#pesquisarClienteBonavere:focus {
+  outline: 2px solid #1765a3;
+  outline-offset: 2px;
+}
+
+/* Tabela de clientes */
+
+#conteudoClientes .tabela-clientes-bonavere {
+  width: 100%;
+  min-width: 850px;
+  table-layout: fixed;
+}
+
+#conteudoClientes .tabela-clientes-bonavere th,
+#conteudoClientes .tabela-clientes-bonavere td {
+  padding: 13px 15px;
+  font-size: 13px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+#conteudoClientes .tabela-clientes-bonavere th:nth-child(1),
+#conteudoClientes .tabela-clientes-bonavere td:nth-child(1) {
+  width: 25%;
+}
+
+#conteudoClientes .tabela-clientes-bonavere th:nth-child(2),
+#conteudoClientes .tabela-clientes-bonavere td:nth-child(2) {
+  width: 35%;
+}
+
+#conteudoClientes .tabela-clientes-bonavere th:nth-child(3),
+#conteudoClientes .tabela-clientes-bonavere td:nth-child(3) {
+  width: 17%;
+}
+
+#conteudoClientes .tabela-clientes-bonavere th:nth-child(4),
+#conteudoClientes .tabela-clientes-bonavere td:nth-child(4) {
+  width: 11%;
+}
+
+#conteudoClientes .tabela-clientes-bonavere th:nth-child(5),
+#conteudoClientes .tabela-clientes-bonavere td:nth-child(5) {
+  width: 12%;
+}
+
+/* Divisores alfabeticos */
+
+#conteudoClientes tr.cliente-grupo-letra td {
+  width: auto;
+  padding: 12px 18px;
+  background: #e8eef5;
+  color: #173b65;
+  font-size: 16px;
+  font-weight: 700;
+  border-left: 4px solid #173b65;
+  border-bottom: 1px solid #dce5ef;
+}
+
+/* Linhas dos clientes */
+
+#conteudoClientes tbody tr:not(.cliente-grupo-letra):hover {
+  background: #f4f8fc;
+}
+
+/* Botao de edicao */
+
+#conteudoClientes .botao-editar-cliente {
+  padding: 8px 14px;
+  border: 1px solid #1765a3;
+  border-radius: 7px;
+  background: #ffffff;
+  color: #1765a3;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+#conteudoClientes .botao-editar-cliente:hover {
+  background: #1765a3;
+  color: #ffffff;
+}
+
+/* Total de clientes */
+
+#conteudoClientes #totalClientesBonavere {
+  display: inline-block;
+  margin: 16px 24px 20px;
+}
+
+/* Adaptacao para telas menores */
+
+@media (max-width: 700px) {
+  #conteudoClientes .clientes-filtros {
+    padding: 0 14px 16px;
+  }
+
+  #conteudoClientes .tabela-clientes-bonavere {
+    min-width: 850px;
+  }
+}

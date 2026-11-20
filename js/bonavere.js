@@ -1652,11 +1652,14 @@ const botoesAbas = document.querySelectorAll(
   ".aba-bonavere"
 );
 
+
 const conteudosAbas = {
   prazos: document.getElementById("conteudoPrazos"),
   audiencias: document.getElementById("conteudoAudiencias"),
-  agenda: document.getElementById("conteudoAgenda")
+  agenda: document.getElementById("conteudoAgenda"),
+  clientes: document.getElementById("conteudoClientes")
 };
+
 
 function selecionarAbaBonavere(nomeAba) {
   if (!conteudosAbas[nomeAba]) return;
