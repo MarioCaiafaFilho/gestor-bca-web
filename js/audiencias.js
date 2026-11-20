@@ -424,15 +424,31 @@ if (campo === "cliente") {
         }
 
         // Validar novo nome ao editar Cliente.
-        if (campo === "cliente") {
-          try {
-            novoValor = validarClienteAudiencia(novoValor);
-          } catch (erro) {
-            cancelar();
-            alert(erro.message);
-            return;
-          }
-        }
+       
+if (campo === "cliente") {
+  const opcoes = Array.from(listaSugestoes.options);
+
+  const clienteEncontrado = opcoes.find(opcao =>
+    opcao.value.localeCompare(
+      novoValor,
+      "pt-BR",
+      { sensitivity: "base" }
+    ) === 0
+  );
+
+  if (!clienteEncontrado) {
+    cancelar();
+
+    alert(
+      "Cliente não encontrado. Selecione um cliente cadastrado e ativo."
+    );
+
+    return;
+  }
+
+  novoValor = clienteEncontrado.value;
+}
+
 
         encerrado = true;
         entrada.disabled = true;
