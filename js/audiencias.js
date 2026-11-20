@@ -804,7 +804,7 @@ if (campo === "data_audiencia") {
       numero_processo: valorOuNulo(
         dados.get("numero_processo")
       ),
-      c
+      
       cliente: validarClienteAudiencia(
         dados.get("cliente")
       ),
