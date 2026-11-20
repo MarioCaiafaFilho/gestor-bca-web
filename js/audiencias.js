@@ -197,6 +197,41 @@
   }
 
   // ==========================================
+  // SUGESTOES DE CLIENTES DAS AUDIENCIAS
+  // ==========================================
+
+  async function carregarSugestoesClientesAudiencia() {
+    const listaSugestoes = document.getElementById(
+      "listaSugestoesClientesAudiencia"
+    );
+
+    if (!listaSugestoes) {
+      throw new Error(
+        "Lista de sugestões de clientes não encontrada."
+      );
+    }
+
+    const { data, error } = await cliente
+      .from("bonavere_clientes")
+      .select("nome_completo")
+      .eq("ativo", true)
+      .order("nome_completo", { ascending: true })
+      .limit(1000);
+
+    if (error) throw error;
+
+    listaSugestoes.replaceChildren();
+
+    for (const registro of data || []) {
+      const opcao = document.createElement("option");
+
+      opcao.value = registro.nome_completo;
+
+      listaSugestoes.appendChild(opcao);
+    }
+  }
+
+  // ==========================================
   // RESPONSAVEIS
   // ==========================================
 
@@ -676,10 +711,33 @@ if (campo === "data_audiencia") {
   // NOVA AUDIENCIA
   // ==========================================
 
-  botaoNovo.addEventListener("click", () => {
-    if (!autorizado) return;
+     
+  botaoNovo.addEventListener("click", async () => {
+    if (!autorizado || botaoNovo.disabled) return;
+
+    botaoNovo.disabled = true;
+
+    try {
+      await verificarSessaoAudiencia();
+      await carregarSugestoesClientesAudiencia();
+    } catch (erro) {
+      console.error(
+        "Erro ao carregar clientes da audiência:",
+        erro
+      );
+
+      alert(
+        "Não foi possível carregar os clientes cadastrados."
+      );
+
+      botaoNovo.disabled = false;
+      return;
+    }
+
+    botaoNovo.disabled = false;
 
     formulario.reset();
+
     formulario.elements.namedItem("id").value = "";
 
     document.getElementById(
@@ -702,6 +760,43 @@ if (campo === "data_audiencia") {
     return String(valor ?? "").trim() || null;
   }
 
+  function validarClienteAudiencia(nome) {
+    const valor = String(nome ?? "").trim();
+
+    if (!valor) {
+      throw new Error(
+        "Selecione um cliente cadastrado."
+      );
+    }
+
+    const lista = document.getElementById(
+      "listaSugestoesClientesAudiencia"
+    );
+
+    if (!lista) {
+      throw new Error(
+        "A lista de clientes não está disponível."
+      );
+    }
+
+    const encontrado = Array.from(lista.options).find(
+      opcao =>
+        opcao.value.localeCompare(
+          valor,
+          "pt-BR",
+          { sensitivity: "base" }
+        ) === 0
+    );
+
+    if (!encontrado) {
+      throw new Error(
+        "Cliente não encontrado. Cadastre-o primeiro na aba Clientes."
+      );
+    }
+
+    return encontrado.value;
+  }
+
   function obterDadosAudiencia() {
     const dados = new FormData(formulario);
 
@@ -709,7 +804,11 @@ if (campo === "data_audiencia") {
       numero_processo: valorOuNulo(
         dados.get("numero_processo")
       ),
-      cliente: valorOuNulo(dados.get("cliente")),
+      c
+      cliente: validarClienteAudiencia(
+        dados.get("cliente")
+      ),
+liente: valorOuNulo(dados.get("cliente")),
       tribunal: valorOuNulo(dados.get("tribunal")),
 
       data_audiencia: validarDataAudiencia(
@@ -793,7 +892,12 @@ if (campo === "data_audiencia") {
             erro.message ||
             "Não foi possível salvar a audiência."
           );
-alert("Não foi possível salvar a audiência.");
+
+alert(
+  erro.message ||
+  "Não foi possível salvar a audiência."
+);
+
       }
 
     } finally {

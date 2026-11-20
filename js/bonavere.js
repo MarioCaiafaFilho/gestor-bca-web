@@ -1312,6 +1312,75 @@ async function carregarOpcoesFormulario() {
   );
 }
 
+function validarClienteSelecionadoPrazo(nome) {
+  const valor = String(nome ?? "").trim();
+
+  if (!valor) {
+    throw new Error(
+      "Selecione um cliente cadastrado."
+    );
+  }
+
+  const lista = document.getElementById(
+    "listaSugestoesClientesPrazo"
+  );
+
+  if (!lista) {
+    throw new Error(
+      "A lista de clientes não está disponível."
+    );
+  }
+
+  const opcoes = Array.from(lista.options);
+
+  const encontrado = opcoes.find(opcao =>
+    opcao.value.localeCompare(
+      valor,
+      "pt-BR",
+      { sensitivity: "base" }
+    ) === 0
+  );
+
+  if (!encontrado) {
+    throw new Error(
+      "Cliente não encontrado. Selecione um cliente cadastrado na aba Clientes."
+    );
+  }
+
+  return encontrado.value;
+}
+
+async function carregarSugestoesClientesPrazo() {
+  const listaSugestoes = document.getElementById(
+    "listaSugestoesClientesPrazo"
+  );
+
+  if (!listaSugestoes) {
+    throw new Error(
+      "Lista de sugestões de clientes não encontrada."
+    );
+  }
+
+  const { data, error } = await clienteSupabase
+    .from("bonavere_clientes")
+    .select("nome_completo")
+    .eq("ativo", true)
+    .order("nome_completo", { ascending: true })
+    .limit(1000);
+
+  if (error) throw error;
+
+  listaSugestoes.replaceChildren();
+
+  for (const registro of data || []) {
+    const opcao = document.createElement("option");
+
+    opcao.value = registro.nome_completo;
+
+    listaSugestoes.appendChild(opcao);
+  }
+}
+
 // ==========================================
 // ABRIR FORMULARIO DE NOVO PRAZO
 // ==========================================
@@ -1330,10 +1399,13 @@ botaoNovo.addEventListener(
 
       formulario.reset();
 
-      await Promise.all([
-        carregarResponsaveis(),
-        carregarTipos()
-      ]);
+     
+await Promise.all([
+  carregarResponsaveis(),
+  carregarTipos(),
+  carregarSugestoesClientesPrazo()
+]);
+
 
       await carregarOpcoesFormulario();
 
@@ -1452,6 +1524,17 @@ formulario.addEventListener(
       return;
     }
 
+    let clienteSelecionado;
+
+    try {
+      clienteSelecionado = validarClienteSelecionadoPrazo(
+        dados.get("cliente")
+      );
+    } catch (erro) {
+      alert(erro.message);
+      return;
+    }
+
     const novoProcesso = {
       numero_processo: textoOuNulo(
         dados.get("numero_processo")
@@ -1461,9 +1544,9 @@ formulario.addEventListener(
         dados.get("origem")
       ),
 
-      cliente: textoOuNulo(
-        dados.get("cliente")
-      ),
+    
+      cliente: clienteSelecionado,
+
 
      
       publicacao: datasValidadas.publicacao,
