@@ -700,6 +700,7 @@ linha.append(
     return linha;
   }
 
+  
   function renderizarAgenda(itens) {
     lista.replaceChildren();
 
@@ -709,73 +710,76 @@ linha.append(
       return;
     }
 
+    // Ordenacao cronologica, independentemente da situacao.
     const meses = new Map();
 
     for (const item of ordenarItens(itens)) {
       if (!item.data) continue;
 
-      const chave = item.data.slice(0, 7);
-
-      if (!meses.has(chave)) {
-        meses.set(chave, []);
-      }
-
-      meses.get(chave).push(item);
+      const chaveMes = item.data.slice(0, 7);
+      if (!meses.has(chaveMes)) meses.set(chaveMes, []);
+      meses.get(chaveMes).push(item);
     }
 
-
-const hoje = new Date();
-
-const mesAtual = [
-  hoje.getFullYear(),
-  String(hoje.getMonth() + 1).padStart(2, "0")
-].join("-");
-
-
-
+    // Todos os meses em ordem de data, inclusive os anteriores.
     const mesesOrdenados = [...meses.entries()].sort(
-      ([mesA], [mesB]) => {
-        const futuroA = mesA >= mesAtual;
-        const futuroB = mesB >= mesAtual;
-
-        if (futuroA !== futuroB) {
-          return futuroA ? -1 : 1;
-        }
-
-        return futuroA
-          ? mesA.localeCompare(mesB)
-          : mesB.localeCompare(mesA);
-      }
+      ([mesA], [mesB]) => mesA.localeCompare(mesB)
     );
 
-    for (const [chave, compromissos] of mesesOrdenados) {
-      const [ano, mes] = chave.split("-").map(Number);
+    const diasSemana = [
+      "Domingo", "Segunda-feira", "Terça-feira",
+      "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"
+    ];
 
-      const secao = criarElemento(
-        "section",
-        "agenda-mes"
-      );
-
+    for (const [chaveMes, compromissos] of mesesOrdenados) {
+      const [ano, mes] = chaveMes.split("-").map(Number);
+      const secao = criarElemento("section", "agenda-mes");
       const titulo = criarElemento(
         "div",
         "agenda-mes-titulo",
         `${nomesMeses[mes - 1]} ${ano}`
       );
-
       secao.appendChild(titulo);
 
+      let dataAnterior = null;
+
+      // Itens ja ordenados por dia e horario em ordenarItens().
       for (const compromisso of compromissos) {
+        if (compromisso.data !== dataAnterior) {
+          const [anoDia, mesDia, dia] = compromisso.data
+            .split("-").map(Number);
+          const indiceSemana = new Date(
+            Date.UTC(anoDia, mesDia - 1, dia)
+          ).getUTCDay();
+
+          const tituloDia = criarElemento(
+            "div",
+            "agenda-dia-titulo",
+            `DIA ${String(dia).padStart(2, "0")} — ${diasSemana[indiceSemana]}`
+          );
+
+          // Visual independente de alteracoes no arquivo CSS.
+          tituloDia.style.padding = "9px 16px";
+          tituloDia.style.backgroundColor = "#f0f4f9";
+          tituloDia.style.color = "#173b65";
+          tituloDia.style.fontWeight = "700";
+          tituloDia.style.fontSize = "12px";
+          tituloDia.style.borderLeft = "4px solid #6b8caf";
+          tituloDia.style.borderBottom = "1px solid #d6e1ed";
+
+          secao.appendChild(tituloDia);
+          dataAnterior = compromisso.data;
+        }
+
         secao.appendChild(criarLinha(compromisso));
       }
 
       lista.appendChild(secao);
     }
 
-
-
-    total.textContent =
-      `${itens.length} compromisso(s)`;
+    total.textContent = `${itens.length} compromisso(s)`;
   }
+
 
   async function carregarAgenda() {
     mostrarMensagem("Carregando Agenda...");
