@@ -112,25 +112,44 @@
     return "";
   }
 
+  
   function normalizarAudiencias(registros) {
-    return registros.map(audiencia => ({
-      id: audiencia.id,
-      origem: "audiencia",
-      data: audiencia.data_audiencia,
-      hora: audiencia.horario,
-      compromisso:
-        audiencia.numero_processo
-          ? `Audiência - ${audiencia.numero_processo}`
-          : `Audiência - ${audiencia.cliente || "Sem identificação"}`,
-      tipo: "Audiência",
-      situacao:
-        audiencia.situacao === "realizada"
-          ? "concluido"
-          : audiencia.situacao === "cancelada"
-            ? "cancelado"
-            : "agendado"
-    }));
+    return registros.map(audiencia => {
+      const numeroProcesso = String(
+        audiencia.numero_processo ?? ""
+      ).trim();
+
+      const nomeCliente = String(
+        audiencia.cliente ?? ""
+      ).trim();
+
+      const identificacao = [
+        numeroProcesso,
+        nomeCliente
+      ].filter(Boolean).join(" - ");
+
+      return {
+        id: audiencia.id,
+        origem: "audiencia",
+        data: audiencia.data_audiencia,
+        hora: audiencia.horario,
+
+        compromisso: identificacao
+          ? `Audiência - ${identificacao}`
+          : "Audiência - Sem identificação",
+
+        tipo: "Audiência",
+
+        situacao:
+          audiencia.situacao === "realizada"
+            ? "concluido"
+            : audiencia.situacao === "cancelada"
+              ? "cancelado"
+              : "agendado"
+      };
+    });
   }
+
 
   function normalizarProcessos(registros) {
     return registros
