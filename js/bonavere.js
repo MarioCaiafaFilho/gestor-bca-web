@@ -1806,8 +1806,7 @@ if (!nomeClienteInformado) {
       ),
 
     
-      cliente: clienteSelecionado,
-
+cliente: nomeClienteInformado,
 
      
       publicacao: datasValidadas.publicacao,
