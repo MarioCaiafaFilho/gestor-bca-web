@@ -1632,3 +1632,57 @@ table td:nth-child(7) {
     font-size: 34px;
   }
 }
+
+/* ==========================================
+   BONAVERE - PESQUISA DE AUDIENCIAS
+   POR CLIENTE OU PROCESSO
+   ========================================== */
+
+#conteudoAudiencias .pesquisa-audiencias-bonavere {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 18px 24px;
+  margin-bottom: 20px;
+  background: #ffffff;
+  border: 1px solid #dce5ef;
+  border-radius: 12px;
+}
+
+#conteudoAudiencias .pesquisa-audiencias-bonavere label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #173b65;
+}
+
+#pesquisarAudienciasBonavere {
+  width: 100%;
+  max-width: 520px;
+  padding: 12px 15px;
+  border: 1px solid #cbd9e8;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #243447;
+  font: inherit;
+  font-size: 14px;
+  outline: none;
+}
+
+#pesquisarAudienciasBonavere:focus {
+  border-color: #376fa9;
+  box-shadow: 0 0 0 3px rgba(55, 111, 169, 0.12);
+}
+
+#pesquisarAudienciasBonavere::placeholder {
+  color: #8190a0;
+}
+
+@media (max-width: 600px) {
+  #conteudoAudiencias .pesquisa-audiencias-bonavere {
+    padding: 15px;
+  }
+
+  #pesquisarAudienciasBonavere {
+    max-width: 100%;
+  }
+}

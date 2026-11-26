@@ -36,6 +36,10 @@
 
   let audienciasEmMemoria = [];
 
+  const pesquisaAudiencias = document.getElementById(
+    "pesquisarAudienciasBonavere"
+  );
+
   function mostrarMensagem(mensagem) {
     const linha = document.createElement("tr");
     const celula = document.createElement("td");
@@ -784,6 +788,24 @@ if (campo === "cliente") {
     const mesSelecionado = filtroMes?.value || "";
     const anoSelecionado = filtroAno?.value || "";
 
+    function normalizarPesquisa(texto) {
+      return String(texto ?? "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLocaleLowerCase("pt-BR")
+        .trim();
+    }
+
+    const termoPesquisa = normalizarPesquisa(
+      pesquisaAudiencias?.value
+    );
+
+    const termoSemPontuacao = termoPesquisa.replace(
+      /[^a-z0-9]/g,
+      ""
+    );
+
+    
     const audienciasFiltradas = audienciasEmMemoria.filter(
       audiencia => {
         const data = audiencia.data_audiencia || "";
@@ -791,12 +813,42 @@ if (campo === "cliente") {
         const ano = data.slice(0, 4);
         const mes = data.slice(5, 7);
 
-        return (
+        const correspondePeriodo =
           (!mesSelecionado || mes === mesSelecionado) &&
-          (!anoSelecionado || ano === anoSelecionado)
+          (!anoSelecionado || ano === anoSelecionado);
+
+        if (!correspondePeriodo) {
+          return false;
+        }
+
+        if (!termoPesquisa) {
+          return true;
+        }
+
+        const nomeCliente = normalizarPesquisa(
+          audiencia.cliente
+        );
+
+        const numeroProcesso = normalizarPesquisa(
+          audiencia.numero_processo
+        );
+
+        const numeroSemPontuacao = numeroProcesso.replace(
+          /[^a-z0-9]/g,
+          ""
+        );
+
+        return (
+          nomeCliente.includes(termoPesquisa) ||
+          numeroProcesso.includes(termoPesquisa) ||
+          (
+            termoSemPontuacao.length > 0 &&
+            numeroSemPontuacao.includes(termoSemPontuacao)
+          )
         );
       }
     );
+
 
     lista.replaceChildren();
 
@@ -947,6 +999,14 @@ for (const audiencia of ordenarAudiencias(audienciasFiltradas)) {
   if (filtroAno) {
     filtroAno.addEventListener(
       "change",
+      renderizarAudiencias
+    );
+  }
+
+  // Pesquisa automatica por cliente ou processo
+  if (pesquisaAudiencias) {
+    pesquisaAudiencias.addEventListener(
+      "input",
       renderizarAudiencias
     );
   }
