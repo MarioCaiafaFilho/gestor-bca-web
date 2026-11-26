@@ -620,6 +620,89 @@ if (campo === "cliente") {
   // ATUALIZAR ANOS DISPONIVEIS
   // ==========================================
 
+  // ==========================================
+  // INDICADORES DE AUDIENCIAS
+  // ==========================================
+
+  function atualizarIndicadoresAudiencias() {
+    const indicadorTotal = document.getElementById(
+      "indicadorTotalAudiencias"
+    );
+
+    const indicadorSemana = document.getElementById(
+      "indicadorAudienciasSemana"
+    );
+
+    const indicadorMes = document.getElementById(
+      "indicadorAudienciasMes"
+    );
+
+    if (!indicadorTotal || !indicadorSemana || !indicadorMes) {
+      return;
+    }
+
+    const hoje = new Date();
+
+    const hojeEmDias = Math.floor(
+      Date.UTC(
+        hoje.getFullYear(),
+        hoje.getMonth(),
+        hoje.getDate()
+      ) / 86400000
+    );
+
+    const anoAtual = String(hoje.getFullYear());
+
+    const mesAtual = String(
+      hoje.getMonth() + 1
+    ).padStart(2, "0");
+
+    let totalSemana = 0;
+    let totalMes = 0;
+
+    for (const audiencia of audienciasEmMemoria) {
+      const data = audiencia.data_audiencia;
+
+      if (!data) continue;
+
+      // Todas as audiencias do mes atual.
+      if (
+        data.slice(0, 4) === anoAtual &&
+        data.slice(5, 7) === mesAtual
+      ) {
+        totalMes++;
+      }
+
+      // Audiencias futuras ainda agendadas
+      // ou redesignadas.
+      if (
+        audiencia.situacao !== "agendada" &&
+        audiencia.situacao !== "redesignada"
+      ) {
+        continue;
+      }
+
+      const [ano, mes, dia] = data.split("-").map(Number);
+
+      const audienciaEmDias = Math.floor(
+        Date.UTC(ano, mes - 1, dia) / 86400000
+      );
+
+      const diasRestantes = audienciaEmDias - hojeEmDias;
+
+      if (diasRestantes >= 0 && diasRestantes <= 7) {
+        totalSemana++;
+      }
+    }
+
+    indicadorTotal.textContent =
+      audienciasEmMemoria.length;
+
+    indicadorSemana.textContent = totalSemana;
+
+    indicadorMes.textContent = totalMes;
+  }
+
   function atualizarAnosAudiencias() {
     if (!filtroAno) return;
 
@@ -683,8 +766,14 @@ if (campo === "cliente") {
 
     audienciasEmMemoria = data || [];
 
+    
+
     atualizarAnosAudiencias();
+
+    atualizarIndicadoresAudiencias();
+
     renderizarAudiencias();
+
   }
 
   // ==========================================
