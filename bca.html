@@ -20,8 +20,6 @@
       class="logo"
     >
 
-    <h1>BCA Contabilidade</h1>
-
     <a href="./menu.html" class="voltar-menu">
       Voltar ao menu
     </a>
@@ -215,19 +213,230 @@
 </dialog>
 
 
-    <section
-      id="conteudoTarefasBCA"
-      class="conteudo-aba-bca"
-      hidden
-    >
-      <div class="painel">
+    
+<section
+  id="conteudoTarefasBCA"
+  class="conteudo-aba-bca"
+  hidden
+>
+
+  <!-- INDICADORES DE TAREFAS -->
+  <div class="indicadores-tarefas-bca">
+
+    <div class="card-tarefa-bca indicador-total-tarefas">
+      <span class="titulo-indicador-tarefa">
+        Total de tarefas
+      </span>
+      <strong id="totalTarefasBCA">0</strong>
+      <span class="descricao-indicador-tarefa">
+        Todas as tarefas cadastradas
+      </span>
+    </div>
+
+    <div class="card-tarefa-bca indicador-aguardando-tarefas">
+      <span class="titulo-indicador-tarefa">
+        Aguardando informação
+      </span>
+      <strong id="aguardandoTarefasBCA">0</strong>
+      <span class="descricao-indicador-tarefa">
+        Tarefas que dependem de informações
+      </span>
+    </div>
+
+    <div class="card-tarefa-bca indicador-processo-tarefas">
+      <span class="titulo-indicador-tarefa">
+        Em processo
+      </span>
+      <strong id="processoTarefasBCA">0</strong>
+      <span class="descricao-indicador-tarefa">
+        Tarefas em andamento
+      </span>
+    </div>
+
+  </div>
+
+  <!-- TAREFAS EM ABERTO -->
+  <div class="painel">
+
+    <div class="cabecalho-tarefas-bca">
+      <div>
         <h2>Tarefas</h2>
         <p>
-          Controle e acompanhamento das atividades
-          contábeis.
+          Controle dos serviços da contabilidade.
         </p>
       </div>
-    </section>
+
+      <button
+        type="button"
+        id="novaTarefaBCA"
+        class="botao-principal-bca"
+        disabled
+      >
+        + Nova tarefa
+      </button>
+    </div>
+
+    <div class="pesquisa-tarefas-bca">
+      <label for="pesquisarTarefasBCA">
+        Pesquisar por nome do cliente
+      </label>
+
+      <input
+        type="search"
+        id="pesquisarTarefasBCA"
+        placeholder="Digite o nome do cliente"
+        autocomplete="off"
+        disabled
+      >
+    </div>
+
+    <div
+      id="mensagemTarefasBCA"
+      role="status"
+      aria-live="polite"
+    ></div>
+
+    <h3>Tarefas em aberto</h3>
+
+    <div class="tabela-tarefas-bca">
+      <table>
+        <thead>
+          <tr>
+            <th>Data de cadastro</th>
+            <th>Cliente</th>
+            <th>Descrição do serviço</th>
+            <th>Status</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+
+        <tbody id="listaTarefasAbertasBCA"></tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <!-- TAREFAS FINALIZADAS -->
+  <div class="painel painel-finalizadas-bca">
+
+    <h2>Tarefas finalizadas</h2>
+
+    <div class="tabela-tarefas-bca">
+      <table>
+        <thead>
+          <tr>
+            <th>Data de cadastro</th>
+            <th>Cliente</th>
+            <th>Descrição do serviço</th>
+            <th>Concluído em</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+
+        <tbody id="listaTarefasFinalizadasBCA"></tbody>
+      </table>
+    </div>
+
+  </div>
+
+</section>
+
+<!-- MODAL DE CADASTRO E EDICAO DE TAREFAS -->
+<dialog id="modalTarefaBCA" class="modal-cliente-bca">
+
+  <form id="formTarefaBCA">
+
+    <h2 id="tituloModalTarefaBCA">
+      Nova tarefa
+    </h2>
+
+    <input type="hidden" name="id">
+
+    <div class="campo-cliente-bca">
+      <label for="clienteTarefaBCA">
+        Nome do cliente *
+      </label>
+
+      <input
+        id="clienteTarefaBCA"
+        name="cliente"
+        type="text"
+        list="sugestoesClientesTarefaBCA"
+        maxlength="200"
+        autocomplete="off"
+        required
+      >
+
+      <datalist id="sugestoesClientesTarefaBCA"></datalist>
+    </div>
+
+    <div class="campo-cliente-bca">
+      <label for="descricaoTarefaBCA">
+        Descrição do serviço *
+      </label>
+
+      <textarea
+        id="descricaoTarefaBCA"
+        name="descricao"
+        rows="4"
+        maxlength="5000"
+        required
+      ></textarea>
+    </div>
+
+    <div class="campo-cliente-bca">
+      <label for="statusTarefaBCA">
+        Status
+      </label>
+
+      <select id="statusTarefaBCA" name="status" required>
+        <option value="aguardando_inicio">
+          Aguardando início
+        </option>
+        <option value="aguardando_informacao">
+          Aguardando informação
+        </option>
+        <option value="em_processo">
+          Em processo
+        </option>
+        <option value="finalizado">
+          Finalizado
+        </option>
+      </select>
+    </div>
+
+    <div class="campo-cliente-bca">
+      <label for="observacoesTarefaBCA">
+        Observações sobre a tarefa
+      </label>
+
+      <textarea
+        id="observacoesTarefaBCA"
+        name="observacoes"
+        rows="4"
+        maxlength="10000"
+        placeholder="Registre informações sobre a execução do serviço"
+      ></textarea>
+    </div>
+
+    <div class="acoes-cliente-bca">
+      <button type="button" id="cancelarTarefaBCA">
+        Cancelar
+      </button>
+
+      <button
+        type="submit"
+        id="salvarTarefaBCA"
+        class="botao-principal-bca"
+      >
+        Salvar tarefa
+      </button>
+    </div>
+
+  </form>
+
+</dialog>
+
 
     <section
       id="conteudoRotinasBCA"
@@ -247,9 +456,12 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
   
+
 <script src="./js/sessao.js" defer></script>
 <script src="./js/bca.js" defer></script>
 <script src="./js/clientes-bca.js" defer></script>
+<script src="./js/tarefas-bca.js" defer></script>
+
 
 </body>
 </html>

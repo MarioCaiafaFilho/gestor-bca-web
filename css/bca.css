@@ -418,3 +418,306 @@ body {
     width: 100%;
   }
 }
+
+/* ==========================================
+   BCA - ABA TAREFAS
+   ========================================== */
+
+/* Indicadores */
+
+.indicadores-tarefas-bca {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+.card-tarefa-bca {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 155px;
+  padding: 22px;
+  background: #ffffff;
+  border: 1px solid #dce5ef;
+  border-radius: 14px;
+  box-shadow: 0 4px 14px rgba(8, 52, 95, 0.06);
+}
+
+.titulo-indicador-tarefa {
+  font-size: 14px;
+  font-weight: 700;
+  color: #344b65;
+}
+
+.card-tarefa-bca strong {
+  font-size: 38px;
+  line-height: 1;
+  font-weight: 700;
+}
+
+.descricao-indicador-tarefa {
+  font-size: 12px;
+  color: #66788e;
+}
+
+/* Total de tarefas */
+
+.indicador-total-tarefas {
+  border-left: 5px solid #1765a3;
+}
+
+.indicador-total-tarefas strong {
+  color: #1765a3;
+}
+
+/* Aguardando informacao */
+
+.indicador-aguardando-tarefas {
+  border-left: 5px solid #e59a23;
+}
+
+.indicador-aguardando-tarefas strong {
+  color: #b76b08;
+}
+
+/* Em processo */
+
+.indicador-processo-tarefas {
+  border-left: 5px solid #27865e;
+}
+
+.indicador-processo-tarefas strong {
+  color: #27865e;
+}
+
+/* Cabecalho da aba */
+
+.cabecalho-tarefas-bca {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.cabecalho-tarefas-bca h2 {
+  margin-bottom: 8px;
+}
+
+/* Pesquisa por nome do cliente */
+
+.pesquisa-tarefas-bca {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 22px;
+}
+
+.pesquisa-tarefas-bca label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #344b65;
+}
+
+.pesquisa-tarefas-bca input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ccd9e7;
+  border-radius: 8px;
+  background: #ffffff;
+  font-size: 14px;
+}
+
+/* Mensagens */
+
+#mensagemTarefasBCA {
+  margin-bottom: 14px;
+  color: #52677e;
+  font-size: 13px;
+}
+
+#mensagemTarefasBCA:empty {
+  display: none;
+}
+
+/* Paineis */
+
+#conteudoTarefasBCA > .painel {
+  margin-bottom: 22px;
+}
+
+#conteudoTarefasBCA .painel h3 {
+  margin: 20px 0 14px;
+  color: #173b65;
+  font-size: 17px;
+}
+
+.painel-finalizadas-bca {
+  border-top: 4px solid #27865e !important;
+}
+
+/* Tabelas */
+
+.tabela-tarefas-bca {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.tabela-tarefas-bca table {
+  width: 100%;
+  min-width: 850px;
+  border-collapse: collapse;
+}
+
+.tabela-tarefas-bca th,
+.tabela-tarefas-bca td {
+  padding: 13px 12px;
+  border-bottom: 1px solid #e2e9f1;
+  text-align: left;
+  font-size: 13px;
+  vertical-align: middle;
+}
+
+.tabela-tarefas-bca th {
+  background: #edf3f9;
+  color: #173b65;
+  font-weight: 700;
+}
+
+.tabela-tarefas-bca td {
+  color: #344b65;
+}
+
+.tabela-tarefas-bca tbody tr:hover {
+  background: #f7fafe;
+}
+
+/* Descricao do servico */
+
+.descricao-tarefa-bca {
+  max-width: 380px;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+/* Status */
+
+.status-tarefa-bca {
+  display: inline-block;
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.status-tarefa-bca.aguardando_inicio {
+  background: #edf1f5;
+  color: #52677e;
+}
+
+.status-tarefa-bca.aguardando_informacao {
+  background: #fff3dc;
+  color: #95600a;
+}
+
+.status-tarefa-bca.em_processo {
+  background: #e6f1ff;
+  color: #1765a3;
+}
+
+.status-tarefa-bca.finalizado {
+  background: #e4f5ec;
+  color: #23734f;
+}
+
+/* Botao de abertura e edicao */
+
+.botao-editar-tarefa-bca {
+  padding: 7px 12px;
+  border: 1px solid #b9cde0;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #1765a3;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.botao-editar-tarefa-bca:hover {
+  background: #edf3f9;
+}
+
+/* Campos do modal de tarefas */
+
+#modalTarefaBCA {
+  width: min(620px, calc(100% - 24px));
+}
+
+#modalTarefaBCA textarea,
+#modalTarefaBCA select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ccd9e7;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #24364b;
+  font: inherit;
+  font-size: 14px;
+}
+
+#modalTarefaBCA textarea {
+  resize: vertical;
+  min-height: 90px;
+}
+
+#modalTarefaBCA textarea:focus,
+#modalTarefaBCA select:focus {
+  outline: 2px solid #8db8dc;
+  outline-offset: 1px;
+}
+
+#cancelarTarefaBCA {
+  border: 1px solid #ccd9e7;
+  background: #ffffff;
+  color: #344b65;
+}
+
+#cancelarTarefaBCA:hover {
+  background: #edf3f9;
+}
+
+/* Adaptacao para telas menores */
+
+@media (max-width: 900px) {
+  .indicadores-tarefas-bca {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .indicadores-tarefas-bca {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .card-tarefa-bca {
+    min-height: 130px;
+    padding: 18px;
+  }
+
+  .card-tarefa-bca strong {
+    font-size: 34px;
+  }
+
+  .cabecalho-tarefas-bca {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .cabecalho-tarefas-bca .botao-principal-bca {
+    width: 100%;
+  }
+}
