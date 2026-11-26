@@ -852,15 +852,16 @@ for (const item of ordenarItens(itensFiltrados)) {      if (!item.data) continue
           dataAnterior = compromisso.data;
         }
 
-        secao.appendChild(criarLinha(compromisso));
+           secao.appendChild(criarLinha(compromisso));
       }
 
       lista.appendChild(secao);
     }
 
-    total.textotal.textContent =
-  `${itensFiltrados.length} compromisso(s)`;tContent = `${itens.length} compromisso(s)`;
+    total.textContent =
+      `${itensFiltrados.length} compromisso(s)`;
   }
+
 
 
   async function carregarAgenda() {
