@@ -1315,3 +1315,50 @@ table td:nth-child(7) {
     max-width: 100%;
   }
 }
+
+/* ==========================================
+   BONAVERE - ROLAGEM HORIZONTAL FIXA
+   ABA PRAZOS
+   ========================================== */
+
+#barraRolagemPrazos {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  z-index: 100;
+  width: 100%;
+  padding: 9px 18px 11px;
+  background: #ffffff;
+  border-top: 1px solid #cbd9e8;
+  box-shadow: 0 -3px 12px rgba(8, 52, 95, 0.10);
+  box-sizing: border-box;
+}
+
+#barraRolagemPrazos[hidden] {
+  display: none !important;
+}
+
+#barraRolagemPrazos .rolagem-prazos-controle {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: auto;
+}
+
+#barraRolagemPrazos .rolagem-prazos-largura {
+  height: 1px;
+}
+
+#barraRolagemPrazos .rolagem-prazos-controle::-webkit-scrollbar {
+  height: 14px;
+}
+
+#barraRolagemPrazos .rolagem-prazos-controle::-webkit-scrollbar-thumb {
+  background: #8aa9c7;
+  border-radius: 8px;
+}
+
+#barraRolagemPrazos .rolagem-prazos-controle::-webkit-scrollbar-track {
+  background: #e8eef5;
+  border-radius: 8px;
+}
