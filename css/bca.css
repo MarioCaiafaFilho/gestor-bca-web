@@ -721,3 +721,391 @@ body {
     width: 100%;
   }
 }
+
+/* ==========================================
+   BCA - ABA ROTINAS CONTABEIS
+   ETAPA 74.4.5
+   ========================================== */
+
+/* INDICADORES */
+
+.indicadores-rotinas-bca {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+.card-rotina-bca {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 155px;
+  padding: 22px;
+  background: #ffffff;
+  border: 1px solid #dce5ef;
+  border-radius: 14px;
+  box-shadow: 0 4px 14px rgba(8, 52, 95, 0.06);
+}
+
+.titulo-indicador-rotina {
+  font-size: 14px;
+  font-weight: 700;
+  color: #344b65;
+}
+
+.card-rotina-bca strong {
+  font-size: 38px;
+  line-height: 1;
+  font-weight: 700;
+}
+
+.descricao-indicador-rotina {
+  font-size: 12px;
+  color: #66788e;
+}
+
+/* CARD - CLIENTES FIXOS */
+
+.indicador-clientes-rotinas {
+  border-left: 5px solid #1765a3;
+}
+
+.indicador-clientes-rotinas strong {
+  color: #1765a3;
+}
+
+/* CARD - ROTINAS PENDENTES */
+
+.indicador-pendentes-rotinas {
+  border-left: 5px solid #e59a23;
+}
+
+.indicador-pendentes-rotinas strong {
+  color: #b76b08;
+}
+
+/* CARD - ROTINAS CONCLUIDAS */
+
+.indicador-concluidas-rotinas {
+  border-left: 5px solid #27865e;
+}
+
+.indicador-concluidas-rotinas strong {
+  color: #27865e;
+}
+
+/* CABECALHO */
+
+.cabecalho-rotinas-bca {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.cabecalho-rotinas-bca h2 {
+  margin-bottom: 8px;
+}
+
+/* FILTROS */
+
+.filtros-rotinas-bca {
+  display: grid;
+  grid-template-columns: 160px 140px minmax(200px, 1fr);
+  gap: 15px;
+  margin-bottom: 22px;
+  align-items: end;
+}
+
+.filtros-rotinas-bca > div {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.filtros-rotinas-bca label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #344b65;
+}
+
+.filtros-rotinas-bca select,
+.filtros-rotinas-bca input {
+  width: 100%;
+  min-height: 43px;
+  padding: 10px 12px;
+  border: 1px solid #ccd9e7;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #24364b;
+  font-size: 14px;
+}
+
+.filtros-rotinas-bca select:focus,
+.filtros-rotinas-bca input:focus {
+  outline: 2px solid #8db8dc;
+  outline-offset: 1px;
+}
+
+/* MENSAGENS */
+
+#mensagemRotinasBCA,
+#mensagemModalRotinasBCA {
+  margin-bottom: 14px;
+  color: #52677e;
+  font-size: 13px;
+}
+
+#mensagemRotinasBCA:empty,
+#mensagemModalRotinasBCA:empty {
+  display: none;
+}
+
+/* TABELA */
+
+.tabela-rotinas-bca {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.tabela-rotinas-bca table {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: collapse;
+}
+
+.tabela-rotinas-bca th,
+.tabela-rotinas-bca td {
+  padding: 13px 12px;
+  border-bottom: 1px solid #e2e9f1;
+  text-align: left;
+  font-size: 13px;
+  vertical-align: middle;
+}
+
+.tabela-rotinas-bca th {
+  background: #edf3f9;
+  color: #173b65;
+  font-weight: 700;
+}
+
+.tabela-rotinas-bca td {
+  color: #344b65;
+}
+
+.tabela-rotinas-bca tbody tr:hover {
+  background: #f7fafe;
+}
+
+/* PROGRESSO DAS ATIVIDADES */
+
+.progresso-rotinas-bca {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 130px;
+}
+
+.barra-progresso-rotinas-bca {
+  width: 100%;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #e5ecf3;
+}
+
+.barra-progresso-rotinas-bca > span {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: inherit;
+  background: #1765a3;
+}
+
+.progresso-rotinas-bca small {
+  color: #52677e;
+  font-size: 12px;
+}
+
+/* SITUACAO DO CLIENTE */
+
+.situacao-rotinas-bca {
+  display: inline-block;
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.situacao-rotinas-bca.pendente {
+  background: #fff3dc;
+  color: #95600a;
+}
+
+.situacao-rotinas-bca.em_processo {
+  background: #e6f1ff;
+  color: #1765a3;
+}
+
+.situacao-rotinas-bca.concluido {
+  background: #e4f5ec;
+  color: #23734f;
+}
+
+.situacao-rotinas-bca.sem_rotinas {
+  background: #edf1f5;
+  color: #52677e;
+}
+
+/* BOTAO DE ABERTURA */
+
+.botao-abrir-rotinas-bca {
+  padding: 8px 13px;
+  border: 1px solid #b9cde0;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #1765a3;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.botao-abrir-rotinas-bca:hover {
+  background: #edf3f9;
+}
+
+/* MODAL DE ROTINAS */
+
+.modal-rotinas-bca {
+  width: min(760px, calc(100% - 24px));
+}
+
+.cabecalho-modal-rotinas-bca h2 {
+  margin-bottom: 8px;
+}
+
+.cabecalho-modal-rotinas-bca p {
+  margin: 0 0 20px;
+  color: #52677e;
+  font-size: 13px;
+}
+
+#listaAtividadesRotinasBCA {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.atividade-rotina-bca {
+  padding: 16px;
+  border: 1px solid #dce5ef;
+  border-radius: 10px;
+  background: #f9fbfd;
+}
+
+.atividade-rotina-bca h3 {
+  margin: 0 0 10px;
+  color: #173b65;
+  font-size: 15px;
+}
+
+.atividade-rotina-bca .detalhes-atividade-bca {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.atividade-rotina-bca label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  color: #344b65;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.atividade-rotina-bca select,
+.atividade-rotina-bca textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccd9e7;
+  border-radius: 7px;
+  background: #ffffff;
+  color: #24364b;
+  font: inherit;
+  font-size: 13px;
+}
+
+.atividade-rotina-bca textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.atividade-rotina-bca .data-conclusao-rotina-bca {
+  display: block;
+  margin-top: 10px;
+  color: #52677e;
+  font-size: 12px;
+}
+
+/* BOTAO DE FECHAR O MODAL */
+
+#fecharModalRotinasBCA {
+  border: 1px solid #ccd9e7;
+  background: #ffffff;
+  color: #344b65;
+}
+
+#fecharModalRotinasBCA:hover {
+  background: #edf3f9;
+}
+
+/* RESPONSIVIDADE */
+
+@media (max-width: 900px) {
+  .indicadores-rotinas-bca {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .filtros-rotinas-bca {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .campo-pesquisa-rotinas-bca {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 600px) {
+  .indicadores-rotinas-bca {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .card-rotina-bca {
+    min-height: 130px;
+    padding: 18px;
+  }
+
+  .card-rotina-bca strong {
+    font-size: 34px;
+  }
+
+  .filtros-rotinas-bca {
+    grid-template-columns: 1fr;
+  }
+
+  .campo-pesquisa-rotinas-bca {
+    grid-column: auto;
+  }
+
+  .atividade-rotina-bca .detalhes-atividade-bca {
+    grid-template-columns: 1fr;
+  }
+}

@@ -438,29 +438,175 @@
 </dialog>
 
 
-    <section
-      id="conteudoRotinasBCA"
-      class="conteudo-aba-bca"
-      hidden
-    >
-      <div class="painel">
-        <h2>Rotinas</h2>
+    
+<section
+  id="conteudoRotinasBCA"
+  class="conteudo-aba-bca"
+  hidden
+>
+
+  <!-- INDICADORES DAS ROTINAS -->
+
+  <div class="indicadores-rotinas-bca">
+
+    <div class="card-rotina-bca indicador-clientes-rotinas">
+      <span class="titulo-indicador-rotina">
+        Clientes fixos
+      </span>
+      <strong id="totalClientesFixosBCA">0</strong>
+      <span class="descricao-indicador-rotina">
+        Clientes ativos da contabilidade
+      </span>
+    </div>
+
+    <div class="card-rotina-bca indicador-pendentes-rotinas">
+      <span class="titulo-indicador-rotina">
+        Rotinas pendentes
+      </span>
+      <strong id="totalRotinasPendentesBCA">0</strong>
+      <span class="descricao-indicador-rotina">
+        Atividades não concluídas na competência
+      </span>
+    </div>
+
+    <div class="card-rotina-bca indicador-concluidas-rotinas">
+      <span class="titulo-indicador-rotina">
+        Rotinas concluídas
+      </span>
+      <strong id="totalRotinasConcluidasBCA">0</strong>
+      <span class="descricao-indicador-rotina">
+        Atividades finalizadas na competência
+      </span>
+    </div>
+
+  </div>
+
+  <!-- CONTROLE DE COMPETENCIA -->
+
+  <div class="painel">
+
+    <div class="cabecalho-rotinas-bca">
+      <div>
+        <h2>Rotinas contábeis</h2>
         <p>
-          Acompanhamento das obrigações recorrentes
+          Acompanhamento mensal das atividades
           dos clientes fixos.
         </p>
       </div>
-    </section>
+    </div>
+
+    <div class="filtros-rotinas-bca">
+
+      <div>
+        <label for="mesRotinasBCA">Mês</label>
+        <select id="mesRotinasBCA" disabled>
+          <option value="01">Janeiro</option>
+          <option value="02">Fevereiro</option>
+          <option value="03">Março</option>
+          <option value="04">Abril</option>
+          <option value="05">Maio</option>
+          <option value="06">Junho</option>
+          <option value="07">Julho</option>
+          <option value="08">Agosto</option>
+          <option value="09">Setembro</option>
+          <option value="10">Outubro</option>
+          <option value="11">Novembro</option>
+          <option value="12">Dezembro</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="anoRotinasBCA">Ano</label>
+        <select id="anoRotinasBCA" disabled></select>
+      </div>
+
+      <div class="campo-pesquisa-rotinas-bca">
+        <label for="pesquisarRotinasBCA">
+          Pesquisar cliente
+        </label>
+        <input
+          type="search"
+          id="pesquisarRotinasBCA"
+          placeholder="Digite o nome do cliente"
+          autocomplete="off"
+          disabled
+        >
+      </div>
+
+    </div>
+
+    <div
+      id="mensagemRotinasBCA"
+      role="status"
+      aria-live="polite"
+    ></div>
+
+    <!-- LISTA DE CLIENTES FIXOS -->
+
+    <div class="tabela-rotinas-bca">
+      <table>
+        <thead>
+          <tr>
+            <th>Cliente</th>
+            <th>Atividades concluídas</th>
+            <th>Situação</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+
+        <tbody id="listaClientesRotinasBCA"></tbody>
+      </table>
+    </div>
+
+  </div>
+
+</section>
+
+<!-- DETALHAMENTO DAS ROTINAS POR CLIENTE -->
+
+<dialog
+  id="modalRotinasClienteBCA"
+  class="modal-cliente-bca modal-rotinas-bca"
+>
+  <div class="cabecalho-modal-rotinas-bca">
+    <h2 id="tituloModalRotinasBCA">
+      Rotinas do cliente
+    </h2>
+
+    <p id="competenciaModalRotinasBCA"></p>
+  </div>
+
+  <div
+    id="mensagemModalRotinasBCA"
+    role="status"
+    aria-live="polite"
+  ></div>
+
+  <div id="listaAtividadesRotinasBCA"></div>
+
+  <div class="acoes-cliente-bca">
+    <button
+      type="button"
+      id="fecharModalRotinasBCA"
+    >
+      Fechar
+    </button>
+  </div>
+</dialog>
+
 
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
   
 
+
 <script src="./js/sessao.js" defer></script>
 <script src="./js/bca.js" defer></script>
 <script src="./js/clientes-bca.js" defer></script>
 <script src="./js/tarefas-bca.js" defer></script>
+<script src="./js/rotinas-bca.js" defer></script>
+
 
 
 </body>
