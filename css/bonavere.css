@@ -1741,3 +1741,98 @@ table td:nth-child(7) {
     min-width: 0;
   }
 }
+
+/* ==========================================
+   BONAVERE - INDICADORES MENSAIS DA AGENDA
+   ========================================== */
+
+#conteudoAgenda .indicadores-agenda {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+#conteudoAgenda .card-indicador-agenda {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 155px;
+  padding: 22px;
+  background: #ffffff;
+  border: 1px solid #dce5ef;
+  border-radius: 14px;
+  box-shadow: 0 4px 14px rgba(8, 52, 95, 0.06);
+}
+
+#conteudoAgenda .indicador-titulo {
+  font-size: 14px;
+  font-weight: 700;
+  color: #344b65;
+}
+
+#conteudoAgenda .card-indicador-agenda strong {
+  font-size: 38px;
+  line-height: 1;
+  font-weight: 700;
+}
+
+#conteudoAgenda .indicador-descricao {
+  font-size: 12px;
+  color: #66788e;
+}
+
+/* Total de compromissos no mes */
+
+#conteudoAgenda .indicador-total {
+  border-left: 5px solid #1765a3;
+}
+
+#conteudoAgenda .indicador-total strong {
+  color: #1765a3;
+}
+
+/* Audiencias no mes */
+
+#conteudoAgenda .indicador-semana {
+  border-left: 5px solid #e59a23;
+}
+
+#conteudoAgenda .indicador-semana strong {
+  color: #b76b08;
+}
+
+/* Atendimentos no mes */
+
+#conteudoAgenda .indicador-sem-data {
+  border-left: 5px solid #d64545;
+}
+
+#conteudoAgenda .indicador-sem-data strong {
+  color: #c52f2f;
+}
+
+/* Adaptacao para telas menores */
+
+@media (max-width: 900px) {
+  #conteudoAgenda .indicadores-agenda {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  #conteudoAgenda .indicadores-agenda {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  #conteudoAgenda .card-indicador-agenda {
+    min-height: 130px;
+    padding: 18px;
+  }
+
+  #conteudoAgenda .card-indicador-agenda strong {
+    font-size: 34px;
+  }
+}

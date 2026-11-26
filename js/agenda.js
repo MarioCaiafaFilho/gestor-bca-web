@@ -734,6 +734,68 @@ linha.append(
   // ANOS DISPONIVEIS NO FILTRO DA AGENDA
   // ==========================================
 
+  // ==========================================
+  // INDICADORES MENSAIS DA AGENDA
+  // ==========================================
+
+  function atualizarIndicadoresAgenda() {
+    const indicadorCompromissos = document.getElementById(
+      "indicadorCompromissosMes"
+    );
+
+    const indicadorAudiencias = document.getElementById(
+      "indicadorAgendaAudienciasMes"
+    );
+
+    const indicadorAtendimentos = document.getElementById(
+      "indicadorAgendaAtendimentosMes"
+    );
+
+    if (
+      !indicadorCompromissos ||
+      !indicadorAudiencias ||
+      !indicadorAtendimentos
+    ) {
+      return;
+    }
+
+    const hoje = new Date();
+
+    const anoAtual = hoje.getFullYear();
+
+    const mesAtual = String(
+      hoje.getMonth() + 1
+    ).padStart(2, "0");
+
+    const periodoAtual = `${anoAtual}-${mesAtual}`;
+
+    // Todos os registros do mes atual.
+    const itensDoMes = itensAgendaMemoria.filter(item =>
+      item.data &&
+      item.data.slice(0, 7) === periodoAtual
+    );
+
+    // Audiencias registradas no mes.
+    const audienciasDoMes = itensDoMes.filter(item =>
+      item.origem === "audiencia"
+    );
+
+    // Atendimentos manuais registrados no mes.
+    const atendimentosDoMes = itensDoMes.filter(item =>
+      item.origem === "manual" &&
+      item.tipoCodigo === "atendimento"
+    );
+
+    indicadorCompromissos.textContent =
+      itensDoMes.length;
+
+    indicadorAudiencias.textContent =
+      audienciasDoMes.length;
+
+    indicadorAtendimentos.textContent =
+      atendimentosDoMes.length;
+  }
+
   function atualizarAnosAgenda() {
     if (!filtroAnoAgenda) return;
 
@@ -915,11 +977,15 @@ for (const item of ordenarItens(itensFiltrados)) {      if (!item.data) continue
     }
 
 
+    
     itensAgendaMemoria = itens;
 
     atualizarAnosAgenda();
 
+    atualizarIndicadoresAgenda();
+
     renderizarAgenda(itensAgendaMemoria);
+
   }
 
   // ==========================================
