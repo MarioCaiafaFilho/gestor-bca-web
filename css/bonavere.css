@@ -1686,3 +1686,58 @@ table td:nth-child(7) {
     max-width: 100%;
   }
 }
+
+/* ==========================================
+   BONAVERE - FILTROS DA AGENDA
+   POR MES E ANO
+   ========================================== */
+
+#conteudoAgenda .filtros-agenda-periodo {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 18px;
+  padding: 20px 24px;
+  margin-bottom: 12px;
+  background: #f8fbff;
+  border-bottom: 1px solid #dce5ef;
+}
+
+#conteudoAgenda .filtros-agenda-periodo label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 180px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #173b65;
+}
+
+#conteudoAgenda .filtros-agenda-periodo select {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid #cbd9e8;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #25364a;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+#conteudoAgenda .filtros-agenda-periodo select:focus {
+  outline: 2px solid #1765a3;
+  outline-offset: 2px;
+}
+
+@media (max-width: 600px) {
+  #conteudoAgenda .filtros-agenda-periodo {
+    padding: 15px;
+    gap: 12px;
+  }
+
+  #conteudoAgenda .filtros-agenda-periodo label {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+}

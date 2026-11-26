@@ -14,6 +14,17 @@
 
   let cliente = null;
 
+  // Filtros da Agenda por mes e ano
+  const filtroMesAgenda = document.getElementById(
+    "filtroMesAgenda"
+  );
+
+  const filtroAnoAgenda = document.getElementById(
+    "filtroAnoAgenda"
+  );
+
+  let itensAgendaMemoria = [];
+
   const nomesMeses = [
     "Janeiro", "Fevereiro", "Março", "Abril",
     "Maio", "Junho", "Julho", "Agosto",
@@ -719,12 +730,64 @@ linha.append(
     return linha;
   }
 
+  // ==========================================
+  // ANOS DISPONIVEIS NO FILTRO DA AGENDA
+  // ==========================================
+
+  function atualizarAnosAgenda() {
+    if (!filtroAnoAgenda) return;
+
+    const anoSelecionado = filtroAnoAgenda.value;
+
+    const anos = [...new Set(
+      itensAgendaMemoria
+        .filter(item => item.data)
+        .map(item => item.data.slice(0, 4))
+    )].sort((a, b) => b.localeCompare(a));
+
+    filtroAnoAgenda.replaceChildren();
+
+    const todos = document.createElement("option");
+    todos.value = "";
+    todos.textContent = "Todos os anos";
+    filtroAnoAgenda.appendChild(todos);
+
+    for (const ano of anos) {
+      const opcao = document.createElement("option");
+      opcao.value = ano;
+      opcao.textContent = ano;
+      filtroAnoAgenda.appendChild(opcao);
+    }
+
+    filtroAnoAgenda.value = anos.includes(anoSelecionado)
+      ? anoSelecionado
+      : "";
+  }
+
   
   function renderizarAgenda(itens) {
+    const mesSelecionado = filtroMesAgenda?.value || "";
+    const anoSelecionado = filtroAnoAgenda?.value || "";
+
+    const itensFiltrados = itens.filter(item => {
+      const data = item.data || "";
+
+      const ano = data.slice(0, 4);
+      const mes = data.slice(5, 7);
+
+      return (
+        (!mesSelecionado || mes === mesSelecionado) &&
+        (!anoSelecionado || ano === anoSelecionado)
+      );
+    });
+
     lista.replaceChildren();
 
-    if (!itens.length) {
-      mostrarMensagem("Nenhum compromisso cadastrado.");
+
+   if (!itensFiltrados.length) {
+  mostrarMensagem(
+    "Nenhum compromisso encontrado para o período selecionado."
+  );
       total.textContent = "0 compromissos";
       return;
     }
@@ -732,8 +795,7 @@ linha.append(
     // Ordenacao cronologica, independentemente da situacao.
     const meses = new Map();
 
-    for (const item of ordenarItens(itens)) {
-      if (!item.data) continue;
+for (const item of ordenarItens(itensFiltrados)) {      if (!item.data) continue;
 
       const chaveMes = item.data.slice(0, 7);
       if (!meses.has(chaveMes)) meses.set(chaveMes, []);
@@ -796,7 +858,8 @@ linha.append(
       lista.appendChild(secao);
     }
 
-    total.textContent = `${itens.length} compromisso(s)`;
+    total.textotal.textContent =
+  `${itensFiltrados.length} compromisso(s)`;tContent = `${itens.length} compromisso(s)`;
   }
 
 
@@ -850,7 +913,28 @@ linha.append(
       );
     }
 
-    renderizarAgenda(itens);
+
+    itensAgendaMemoria = itens;
+
+    atualizarAnosAgenda();
+
+    renderizarAgenda(itensAgendaMemoria);
+  }
+
+  // ==========================================
+  // EVENTOS DOS FILTROS DA AGENDA
+  // ==========================================
+
+  if (filtroMesAgenda) {
+    filtroMesAgenda.addEventListener("change", () => {
+      renderizarAgenda(itensAgendaMemoria);
+    });
+  }
+
+  if (filtroAnoAgenda) {
+    filtroAnoAgenda.addEventListener("change", () => {
+      renderizarAgenda(itensAgendaMemoria);
+    });
   }
 
   async function iniciarAgenda() {
