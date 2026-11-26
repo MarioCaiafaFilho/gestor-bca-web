@@ -199,6 +199,62 @@ function diasAteVencimento(data) {
   return dataEmDias(data) - hojeEmDias;
 }
 
+/* ==========================================
+   INDICADORES DE PRAZOS
+   ========================================== */
+
+function atualizarIndicadoresPrazos(processos) {
+  const indicadorTotal = document.getElementById(
+    "indicadorTotalPrazos"
+  );
+
+  const indicadorSemana = document.getElementById(
+    "indicadorPrazosSemana"
+  );
+
+  const indicadorSemData = document.getElementById(
+    "indicadorPrazosSemData"
+  );
+
+  if (
+    !indicadorTotal ||
+    !indicadorSemana ||
+    !indicadorSemData
+  ) {
+    return;
+  }
+
+  const abertos = processos.filter(
+    processo => !encerrado(processo)
+  );
+
+  const vencendoSemana = abertos.filter(processo => {
+    if (!processo.vencimento) return false;
+
+    const dias = diasAteVencimento(
+      processo.vencimento
+    );
+
+    return (
+      Number.isFinite(dias) &&
+      dias >= 0 &&
+      dias <= 7
+    );
+  });
+
+  const semData = abertos.filter(
+    processo => !processo.vencimento
+  );
+
+  indicadorTotal.textContent = abertos.length;
+
+  indicadorSemana.textContent =
+    vencendoSemana.length;
+
+  indicadorSemData.textContent =
+    semData.length;
+}
+
 // ==========================================
 // ALERTA DE VENCIMENTO - 7 DIAS
 // ==========================================
@@ -1309,9 +1365,13 @@ async function carregarProcessos() {
   }
 
 
+
 processosEmMemoria = data || [];
 
 mostrarProcessos(processosEmMemoria);
+
+atualizarIndicadoresPrazos(processosEmMemoria);
+
 }
 
 // ==========================================

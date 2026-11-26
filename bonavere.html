@@ -73,11 +73,51 @@
 </nav>
 <!-- FIM DA NAVEGACAO -->
 
-<!-- CONTEUDO DA ABA PRAZOS -->
 
+<!-- CONTEUDO DA ABA PRAZOS -->
 <div id="conteudoPrazos" class="conteudo-aba">
 
+  <!-- INDICADORES DE PRAZOS -->
+  <section
+    class="indicadores-prazos"
+    aria-label="Resumo dos prazos"
+  >
+
+    <div class="card-indicador-prazo indicador-total">
+      <span class="indicador-titulo">
+        Total de prazos em aberto
+      </span>
+      <strong id="indicadorTotalPrazos">0</strong>
+      <span class="indicador-descricao">
+        Processos com atividades pendentes
+      </span>
+    </div>
+
+    <div class="card-indicador-prazo indicador-semana">
+      <span class="indicador-titulo">
+        Prazos vencendo em 7 dias
+      </span>
+      <strong id="indicadorPrazosSemana">0</strong>
+      <span class="indicador-descricao">
+        Vencimentos próximos
+      </span>
+    </div>
+
+    <div class="card-indicador-prazo indicador-sem-data">
+      <span class="indicador-titulo">
+        Prazos sem data de vencimento
+      </span>
+      <strong id="indicadorPrazosSemData">0</strong>
+      <span class="indicador-descricao">
+        Aguardando definição do vencimento
+      </span>
+    </div>
+
+  </section>
+  <!-- FIM DOS INDICADORES -->
+
   <!-- PESQUISA DE PROCESSOS E CLIENTES -->
+
   <div class="pesquisa-prazos-bonavere">
     <label for="pesquisarPrazosBonavere">
       Pesquisar cliente ou processo

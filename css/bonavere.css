@@ -1362,3 +1362,98 @@ table td:nth-child(7) {
   background: #e8eef5;
   border-radius: 8px;
 }
+
+/* ==========================================
+   BONAVERE - INDICADORES DE PRAZOS
+   ========================================== */
+
+#conteudoPrazos .indicadores-prazos {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+#conteudoPrazos .card-indicador-prazo {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 155px;
+  padding: 22px;
+  background: #ffffff;
+  border: 1px solid #dce5ef;
+  border-radius: 14px;
+  box-shadow: 0 4px 14px rgba(8, 52, 95, 0.06);
+}
+
+#conteudoPrazos .indicador-titulo {
+  font-size: 14px;
+  font-weight: 700;
+  color: #344b65;
+}
+
+#conteudoPrazos .card-indicador-prazo strong {
+  font-size: 38px;
+  line-height: 1;
+  font-weight: 700;
+}
+
+#conteudoPrazos .indicador-descricao {
+  font-size: 12px;
+  color: #66788e;
+}
+
+/* Total de prazos em aberto */
+
+#conteudoPrazos .indicador-total {
+  border-left: 5px solid #1765a3;
+}
+
+#conteudoPrazos .indicador-total strong {
+  color: #1765a3;
+}
+
+/* Vencimentos nos proximos 7 dias */
+
+#conteudoPrazos .indicador-semana {
+  border-left: 5px solid #e59a23;
+}
+
+#conteudoPrazos .indicador-semana strong {
+  color: #b76b08;
+}
+
+/* Prazos sem vencimento definido */
+
+#conteudoPrazos .indicador-sem-data {
+  border-left: 5px solid #d64545;
+}
+
+#conteudoPrazos .indicador-sem-data strong {
+  color: #c52f2f;
+}
+
+/* Adaptacao para telas menores */
+
+@media (max-width: 900px) {
+  #conteudoPrazos .indicadores-prazos {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  #conteudoPrazos .indicadores-prazos {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  #conteudoPrazos .card-indicador-prazo {
+    min-height: 130px;
+    padding: 18px;
+  }
+
+  #conteudoPrazos .card-indicador-prazo strong {
+    font-size: 34px;
+  }
+}
