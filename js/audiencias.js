@@ -25,6 +25,17 @@
   let responsaveisAudiencias = [];
   let salvandoFormulario = false;
 
+  // Filtros por mes e ano
+  const filtroMes = document.getElementById(
+    "filtroMesAudiencias"
+  );
+
+  const filtroAno = document.getElementById(
+    "filtroAnoAudiencias"
+  );
+
+  let audienciasEmMemoria = [];
+
   function mostrarMensagem(mensagem) {
     const linha = document.createElement("tr");
     const celula = document.createElement("td");
@@ -606,6 +617,42 @@ if (campo === "cliente") {
   }
 
   // ==========================================
+  // ATUALIZAR ANOS DISPONIVEIS
+  // ==========================================
+
+  function atualizarAnosAudiencias() {
+    if (!filtroAno) return;
+
+    const anoSelecionado = filtroAno.value;
+
+    const anos = [...new Set(
+      audienciasEmMemoria
+        .filter(audiencia => audiencia.data_audiencia)
+        .map(audiencia =>
+          audiencia.data_audiencia.slice(0, 4)
+        )
+    )].sort((a, b) => b.localeCompare(a));
+
+    filtroAno.replaceChildren();
+
+    const todos = document.createElement("option");
+    todos.value = "";
+    todos.textContent = "Todos os anos";
+    filtroAno.appendChild(todos);
+
+    for (const ano of anos) {
+      const opcao = document.createElement("option");
+      opcao.value = ano;
+      opcao.textContent = ano;
+      filtroAno.appendChild(opcao);
+    }
+
+    filtroAno.value = anos.includes(anoSelecionado)
+      ? anoSelecionado
+      : "";
+  }
+
+  // ==========================================
   // CARREGAR E EXIBIR AUDIENCIAS
   // ==========================================
 
@@ -631,16 +678,43 @@ if (campo === "cliente") {
       .order("horario", { ascending: true })
       .limit(1000);
 
+    
     if (error) throw error;
 
-    
-  
-lista.replaceChildren();
+    audienciasEmMemoria = data || [];
+
+    atualizarAnosAudiencias();
+    renderizarAudiencias();
+  }
+
+  // ==========================================
+  // EXIBIR AUDIENCIAS COM FILTRO
+  // ==========================================
+
+  function renderizarAudiencias() {
+    const mesSelecionado = filtroMes?.value || "";
+    const anoSelecionado = filtroAno?.value || "";
+
+    const audienciasFiltradas = audienciasEmMemoria.filter(
+      audiencia => {
+        const data = audiencia.data_audiencia || "";
+
+        const ano = data.slice(0, 4);
+        const mes = data.slice(5, 7);
+
+        return (
+          (!mesSelecionado || mes === mesSelecionado) &&
+          (!anoSelecionado || ano === anoSelecionado)
+        );
+      }
+    );
+
+    lista.replaceChildren();
+
 
 let mesAnterior = "";
 
-for (const audiencia of ordenarAudiencias(data || [])) {
-
+for (const audiencia of ordenarAudiencias(audienciasFiltradas)) {
   const mesAtual = audiencia.data_audiencia.slice(0, 7);
 
   if (mesAtual !== mesAnterior) {
@@ -762,11 +836,30 @@ for (const audiencia of ordenarAudiencias(data || [])) {
     }
 
     total.textContent =
-      `${data?.length || 0} audiência(s)`;
+  `${audienciasFiltradas.length} audiência(s)`;
+   if (audienciasFiltradas.length === 0) {
+  mostrarMensagem(
+    "Nenhuma audiência encontrada para o período selecionado."
+  );
+}
+  }
 
-    if (!data?.length) {
-      mostrarMensagem("Nenhuma audiência cadastrada.");
-    }
+  // ==========================================
+  // EVENTOS DOS FILTROS
+  // ==========================================
+
+  if (filtroMes) {
+    filtroMes.addEventListener(
+      "change",
+      renderizarAudiencias
+    );
+  }
+
+  if (filtroAno) {
+    filtroAno.addEventListener(
+      "change",
+      renderizarAudiencias
+    );
   }
 
   // ==========================================
