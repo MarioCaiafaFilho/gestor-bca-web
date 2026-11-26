@@ -1542,6 +1542,106 @@ async function carregarSugestoesClientesPrazo() {
   }
 }
 
+/* ==========================================
+   CADASTRO AUTOMATICO DE CLIENTES
+   AO CADASTRAR UM NOVO PRAZO
+   ========================================== */
+
+async function obterOuCadastrarClientePrazo(nomeInformado) {
+  const nome = String(nomeInformado ?? "")
+    .trim()
+    .replace(/\s+/g, " ");
+
+  if (!nome) {
+    throw new Error(
+      "Informe o nome completo do cliente."
+    );
+  }
+
+  function normalizarNome(valor) {
+    return String(valor ?? "")
+      .trim()
+      .replace(/\s+/g, " ")
+      .toLocaleLowerCase("pt-BR");
+  }
+
+  async function localizarCliente() {
+    const { data, error } = await clienteSupabase
+      .from("bonavere_clientes")
+      .select("nome_completo, ativo")
+      .order("nome_completo", { ascending: true })
+      .limit(1000);
+
+    if (error) throw error;
+
+    return (data || []).find(
+      registro =>
+        normalizarNome(registro.nome_completo) ===
+        normalizarNome(nome)
+    );
+  }
+
+  await exigirSessaoParaEdicao();
+
+  // Primeiro, procurar um cliente existente.
+  const existente = await localizarCliente();
+
+  if (existente) {
+    if (!existente.ativo) {
+      throw new Error(
+        "Este cliente já está cadastrado como inativo. " +
+        "Ative-o na aba Clientes antes de cadastrar o prazo."
+      );
+    }
+
+    return existente.nome_completo;
+  }
+
+  // Se nao existe, cadastrar somente o nome.
+  const { data, error } = await clienteSupabase
+    .from("bonavere_clientes")
+    .insert({
+      nome_completo: nome,
+      ativo: true
+    })
+    .select("nome_completo")
+    .single();
+
+  if (error) {
+    // Caso outro usuario tenha cadastrado
+    // o cliente simultaneamente.
+    if (error.code === "23505") {
+      const encontrado = await localizarCliente();
+
+      if (encontrado) {
+        if (!encontrado.ativo) {
+          throw new Error(
+            "Este cliente já está cadastrado como inativo. " +
+            "Ative-o na aba Clientes antes de cadastrar o prazo."
+          );
+        }
+
+        return encontrado.nome_completo;
+      }
+
+      throw new Error(
+        "O cliente já existe, mas não foi possível " +
+        "localizá-lo. Consulte a aba Clientes."
+      );
+    }
+
+    throw error;
+  }
+
+  if (!data?.nome_completo) {
+    throw new Error(
+      "O banco não confirmou o cadastro do cliente."
+    );
+  }
+
+  return data.nome_completo;
+}
+
 // ==========================================
 // ABRIR FORMULARIO DE NOVO PRAZO
 // ==========================================
@@ -1685,16 +1785,16 @@ formulario.addEventListener(
       return;
     }
 
-    let clienteSelecionado;
+    
+const nomeClienteInformado = String(
+  dados.get("cliente") ?? ""
+).trim();
 
-    try {
-      clienteSelecionado = validarClienteSelecionadoPrazo(
-        dados.get("cliente")
-      );
-    } catch (erro) {
-      alert(erro.message);
-      return;
-    }
+if (!nomeClienteInformado) {
+  alert("Informe o nome completo do cliente.");
+  return;
+}
+
 
     const novoProcesso = {
       numero_processo: textoOuNulo(
@@ -1733,13 +1833,25 @@ formulario.addEventListener(
         dados.get("status") || "aberta"
     };
 
-    botaoSalvar.disabled = true;
-    botaoSalvar.textContent = "Salvando...";
+   
+botaoSalvar.disabled = true;
+botaoSalvar.textContent = "Salvando...";
 
-    try {
-      await exigirSessaoParaEdicao();
+let clientePreparado = false;
 
-      const { error } = await clienteSupabase
+try {
+  await exigirSessaoParaEdicao();
+
+  // Localiza o cliente ou cadastra automaticamente.
+  novoProcesso.cliente =
+    await obterOuCadastrarClientePrazo(
+      nomeClienteInformado
+    );
+
+  clientePreparado = true;
+
+  const { error } = await clienteSupabase
+
         .from("bonavere_processos")
         .insert(novoProcesso);
 
@@ -1753,15 +1865,25 @@ formulario.addEventListener(
         "Prazo cadastrado com sucesso!"
       );
 
-    } catch (erro) {
-      console.error(
-        "Erro ao cadastrar prazo:",
-        erro
-      );
+    
+} catch (erro) {
+  console.error(
+    "Erro ao cadastrar prazo:",
+    erro
+  );
 
-      alert(
-        "Não foi possível concluir o cadastro."
-      );
+  if (clientePreparado) {
+    alert(
+      "Não foi possível concluir o cadastro do prazo.\n\n" +
+      "O cliente poderá ter sido cadastrado e permanecer " +
+      "na aba Clientes. Confira antes de tentar novamente."
+    );
+  } else {
+    alert(
+      erro?.message ||
+      "Não foi possível preparar o cadastro do cliente."
+    );
+  }
 
     } finally {
       botaoSalvar.disabled = false;
