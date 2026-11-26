@@ -61,6 +61,37 @@
     return String(valor ?? "").trim() || null;
   }
 
+  // Mesmo criterio de normalizacao do indice
+  // de unicidade criado no Supabase.
+  function normalizarNomeCliente(nome) {
+    return String(nome ?? "")
+      .trim()
+      .replace(/\s+/g, " ")
+      .toLocaleLowerCase("pt-BR");
+  }
+
+  function verificarNomeDuplicado(nome, idAtual) {
+    const nomeNormalizado = normalizarNomeCliente(nome);
+
+    return clientesCadastrados.some(registro =>
+      registro.id !== idAtual &&
+      normalizarNomeCliente(registro.nome_completo) ===
+        nomeNormalizado
+    );
+  }
+
+  function erroDeNomeDuplicado(erro) {
+    return erro?.code === "23505" &&
+      (
+        String(erro?.message ?? "").includes(
+          "bonavere_clientes_nome_unico"
+        ) ||
+        String(erro?.details ?? "").includes(
+          "nome_completo"
+        )
+      );
+  }
+
   function mostrarMensagem(mensagem) {
     const linha = document.createElement("tr");
     const celula = document.createElement("td");
@@ -90,7 +121,9 @@
     const sessao = window.GestorBCASessao;
 
     if (!sessao || !cliente) {
-      throw new Error("Controle de sessão indisponível.");
+      throw new Error(
+        "Controle de sessão indisponível."
+      );
     }
 
     const ultima = sessao.obterUltimaAtividade();
@@ -102,6 +135,7 @@
       agora - ultima >= sessao.TEMPO_INATIVIDADE
     ) {
       await sessao.encerrarPorInatividade(cliente);
+
       throw new Error("Sessão expirada.");
     }
 
@@ -153,96 +187,101 @@
   // LISTAGEM E PESQUISA
   // ==========================================
 
- 
-function renderizarClientes() {
-  const termo = pesquisa.value
-    .trim()
-    .toLocaleLowerCase("pt-BR");
-
-  const filtrados = clientesCadastrados
-    .filter(registro =>
-      registro.nome_completo
-        .toLocaleLowerCase("pt-BR")
-        .includes(termo)
-    )
-    .sort((a, b) =>
-      a.nome_completo.localeCompare(
-        b.nome_completo,
-        "pt-BR",
-        { sensitivity: "base" }
-      )
-    );
-
-  lista.replaceChildren();
-
-  let letraAtual = "";
-
-  for (const registro of filtrados) {
-    const primeiraLetra = registro.nome_completo
+  function renderizarClientes() {
+    const termo = pesquisa.value
       .trim()
-      .charAt(0)
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .toLocaleUpperCase("pt-BR");
+      .toLocaleLowerCase("pt-BR");
 
-    const letra = /^[A-Z]$/.test(primeiraLetra)
-      ? primeiraLetra
-      : "#";
+    const filtrados = clientesCadastrados
+      .filter(registro =>
+        registro.nome_completo
+          .toLocaleLowerCase("pt-BR")
+          .includes(termo)
+      )
+      .sort((a, b) =>
+        a.nome_completo.localeCompare(
+          b.nome_completo,
+          "pt-BR",
+          { sensitivity: "base" }
+        )
+      );
 
-    if (letra !== letraAtual) {
-      letraAtual = letra;
+    lista.replaceChildren();
 
-      const linhaLetra = document.createElement("tr");
-      linhaLetra.className = "cliente-grupo-letra";
+    let letraAtual = "";
 
-      const celulaLetra = document.createElement("td");
-      celulaLetra.colSpan = 5;
-      celulaLetra.textContent = letra;
+    for (const registro of filtrados) {
+      const primeiraLetra = registro.nome_completo
+        .trim()
+        .charAt(0)
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLocaleUpperCase("pt-BR");
 
-      linhaLetra.appendChild(celulaLetra);
-      lista.appendChild(linhaLetra);
+      const letra = /^[A-Z]$/.test(primeiraLetra)
+        ? primeiraLetra
+        : "#";
+
+      if (letra !== letraAtual) {
+        letraAtual = letra;
+
+        const linhaLetra = document.createElement("tr");
+        linhaLetra.className = "cliente-grupo-letra";
+
+        const celulaLetra = document.createElement("td");
+        celulaLetra.colSpan = 5;
+        celulaLetra.textContent = letra;
+
+        linhaLetra.appendChild(celulaLetra);
+        lista.appendChild(linhaLetra);
+      }
+
+      const linha = document.createElement("tr");
+
+      adicionarCelula(linha, registro.nome_completo);
+      adicionarCelula(
+        linha,
+        registro.endereco || "—"
+      );
+      adicionarCelula(
+        linha,
+        registro.telefone || "—"
+      );
+      adicionarCelula(
+        linha,
+        registro.ativo ? "Ativo" : "Inativo"
+      );
+
+      const celulaAcoes = document.createElement("td");
+
+      if (podeEditar) {
+        const editar = document.createElement("button");
+
+        editar.type = "button";
+        editar.className = "botao-editar-cliente";
+        editar.textContent = "Editar";
+
+        editar.addEventListener("click", () => {
+          abrirFormulario(registro);
+        });
+
+        celulaAcoes.appendChild(editar);
+      } else {
+        celulaAcoes.textContent = "Somente leitura";
+      }
+
+      linha.appendChild(celulaAcoes);
+      lista.appendChild(linha);
     }
 
-    const linha = document.createElement("tr");
-
-    adicionarCelula(linha, registro.nome_completo);
-    adicionarCelula(linha, registro.endereco || "—");
-    adicionarCelula(linha, registro.telefone || "—");
-    adicionarCelula(
-      linha,
-      registro.ativo ? "Ativo" : "Inativo"
-    );
-
-    const celulaAcoes = document.createElement("td");
-
-    if (podeEditar) {
-      const editar = document.createElement("button");
-
-      editar.type = "button";
-      editar.className = "botao-editar-cliente";
-      editar.textContent = "Editar";
-
-      editar.addEventListener("click", () => {
-        abrirFormulario(registro);
-      });
-
-      celulaAcoes.appendChild(editar);
-    } else {
-      celulaAcoes.textContent = "Somente leitura";
+    if (filtrados.length === 0) {
+      mostrarMensagem("Nenhum cliente encontrado.");
     }
 
-    linha.appendChild(celulaAcoes);
-    lista.appendChild(linha);
+    total.textContent =
+      `${filtrados.length} de ` +
+      `${clientesCadastrados.length} cliente(s)`;
   }
-
-  if (filtrados.length === 0) {
-    mostrarMensagem("Nenhum cliente encontrado.");
-  }
-
-  total.textContent =
-    `${filtrados.length} de ` +
-    `${clientesCadastrados.length} cliente(s)`;
-}
 
   async function carregarClientes() {
     mostrarMensagem("Carregando clientes...");
@@ -344,7 +383,9 @@ function renderizarClientes() {
 
         const campos = new FormData(formulario);
 
-        const id = textoOuNulo(campos.get("id"));
+        const id = textoOuNulo(
+          campos.get("id")
+        );
 
         const nome = textoOuNulo(
           campos.get("nome_completo")
@@ -356,14 +397,25 @@ function renderizarClientes() {
           );
         }
 
+        // Impedir nome duplicado antes de salvar.
+        // Na edicao, ignora o proprio registro.
+        if (verificarNomeDuplicado(nome, id)) {
+          throw new Error(
+            "Já existe um cliente cadastrado com esse nome."
+          );
+        }
+
         const dados = {
           nome_completo: nome,
+
           endereco: textoOuNulo(
             campos.get("endereco")
           ),
+
           telefone: textoOuNulo(
             campos.get("telefone")
           ),
+
           ativo: campos.get("ativo") === "true"
         };
 
@@ -409,11 +461,16 @@ function renderizarClientes() {
           erro
         );
 
-        alert(
-          gravado
-            ? "Cliente salvo, mas a lista não foi atualizada."
-            : "Não foi possível salvar o cliente."
-        );
+        const mensagem = gravado
+          ? "Cliente salvo, mas a lista não foi atualizada."
+          : erroDeNomeDuplicado(erro)
+            ? "Já existe um cliente cadastrado com esse nome."
+            : erro?.message ===
+              "Já existe um cliente cadastrado com esse nome."
+              ? erro.message
+              : "Não foi possível salvar o cliente.";
+
+        alert(mensagem);
 
       } finally {
         salvando = false;
