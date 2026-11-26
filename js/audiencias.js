@@ -111,22 +111,16 @@
     return "";
   }
 
-  function ordenarAudiencias(audiencias) {
-    return [...audiencias].sort((a, b) => {
-      const prioridadeA = prioridadeAudiencia(a);
-      const prioridadeB = prioridadeAudiencia(b);
+  
+function ordenarAudiencias(audiencias) {
+  return [...audiencias].sort((a, b) => {
+    return (
+      a.data_audiencia.localeCompare(b.data_audiencia) ||
+      (a.horario || "").localeCompare(b.horario || "")
+    );
+  });
+}
 
-      if (prioridadeA !== prioridadeB) {
-        return prioridadeA - prioridadeB;
-      }
-
-      const comparacao =
-        a.data_audiencia.localeCompare(b.data_audiencia) ||
-        (a.horario || "").localeCompare(b.horario || "");
-
-      return prioridadeA === 1 ? -comparacao : comparacao;
-    });
-  }
 
   // ==========================================
   // SESSAO E ACESSO
@@ -639,10 +633,40 @@ if (campo === "cliente") {
 
     if (error) throw error;
 
-    lista.replaceChildren();
+    
+  
+lista.replaceChildren();
 
-    for (const audiencia of ordenarAudiencias(data || [])) {
-      const linha = document.createElement("tr");
+let mesAnterior = "";
+
+for (const audiencia of ordenarAudiencias(data || [])) {
+
+  const mesAtual = audiencia.data_audiencia.slice(0, 7);
+
+  if (mesAtual !== mesAnterior) {
+    mesAnterior = mesAtual;
+
+    const [ano, mes] = mesAtual.split("-").map(Number);
+
+    const nomeMes = new Intl.DateTimeFormat("pt-BR", {
+      month: "long",
+      year: "numeric",
+      timeZone: "UTC"
+    }).format(new Date(Date.UTC(ano, mes - 1, 1)));
+
+    const linhaMes = document.createElement("tr");
+    linhaMes.className = "audiencia-separador-mes";
+
+    const celulaMes = document.createElement("td");
+    celulaMes.colSpan = 10;
+    celulaMes.textContent = nomeMes.toLocaleUpperCase("pt-BR");
+
+    linhaMes.appendChild(celulaMes);
+    lista.appendChild(linhaMes);
+  }
+
+  const linha = document.createElement("tr");
+
       const classe = classeCorAudiencia(audiencia);
 
       if (classe) {

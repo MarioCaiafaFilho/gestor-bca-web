@@ -1457,3 +1457,28 @@ table td:nth-child(7) {
     font-size: 34px;
   }
 }
+
+/* ==========================================
+   BONAVERE - SEPARADORES MENSAIS
+   ABA AUDIENCIAS
+   ========================================== */
+
+#conteudoAudiencias tr.audiencia-separador-mes > td {
+  padding: 14px 20px;
+  background-color: #e8eef5;
+  color: #173b65;
+  border-left: 5px solid #173b65;
+  border-bottom: 1px solid #cbd9e8;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+/* Preservar a cor do separador ao passar o mouse */
+
+#conteudoAudiencias tr.audiencia-separador-mes:hover > td {
+  background-color: #e8eef5;
+  filter: none;
+}
