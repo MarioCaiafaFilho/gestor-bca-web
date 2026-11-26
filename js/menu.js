@@ -10,6 +10,9 @@
 const mensagem =
   document.getElementById("mensagemMenu");
 
+const moduloBCA =
+  document.getElementById("moduloBCA");
+
 const moduloBonavere =
   document.getElementById("moduloBonavere");
 
@@ -30,8 +33,11 @@ async function iniciarMenu() {
   // Os modulos permanecem ocultos
   // ate a verificacao das permissoes.
 
+  
+  moduloBCA.classList.add("oculto");
   moduloBonavere.classList.add("oculto");
   moduloAdmin.classList.add("oculto");
+
 
   botaoSair.disabled = true;
 
@@ -73,10 +79,13 @@ async function iniciarMenu() {
       agora - ultimaAtividade >=
         window.GestorBCASessao.TEMPO_INATIVIDADE
     ) {
+     
       // Sessao antiga ou expirada.
       // Impede o acesso aos modulos.
+      moduloBCA.classList.add("oculto");
       moduloBonavere.classList.add("oculto");
       moduloAdmin.classList.add("oculto");
+
 
       mensagem.textContent =
         "Sessão expirada. Faça login novamente.";
@@ -117,6 +126,10 @@ async function iniciarMenu() {
       return;
     }
 
+    // Todos os usuarios autorizados
+    // possuem acesso ao modulo BCA.
+    moduloBCA.classList.remove("oculto");
+
     // Acesso Master ao painel administrativo.
 
     const acessoMaster =
@@ -155,12 +168,11 @@ async function iniciarMenu() {
       moduloBonavere.classList.remove("oculto");
     }
 
-    if (acessoBonavere || acessoMaster) {
-      mensagem.textContent = "";
-    } else {
-      mensagem.textContent =
-        "Nenhum módulo disponível para sua conta.";
-    }
+      
+    // O modulo BCA esta disponivel
+    // para todos os usuarios autorizados.
+    mensagem.textContent = "";
+
 
     botaoSair.disabled = false;
 

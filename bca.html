@@ -1,0 +1,255 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+  <title>BCA Contabilidade | Gestor BCA</title>
+
+  <link rel="stylesheet" href="./css/bonavere.css">
+  <link rel="stylesheet" href="./css/bca.css">
+</head>
+
+<body>
+  <header class="cabecalho">
+    <img
+      src="./logo-bca-recortado.png"
+      alt="BCA Contabilidade"
+      class="logo"
+    >
+
+    <h1>BCA Contabilidade</h1>
+
+    <a href="./menu.html" class="voltar-menu">
+      Voltar ao menu
+    </a>
+  </header>
+
+  <main class="conteudo-bca">
+
+    <nav class="abas-bca" aria-label="Áreas da contabilidade">
+      <button
+        type="button"
+        class="aba-bca ativa"
+        data-aba="clientes"
+      >
+        Clientes
+      </button>
+
+      <button
+        type="button"
+        class="aba-bca"
+        data-aba="tarefas"
+      >
+        Tarefas
+      </button>
+
+      <button
+        type="button"
+        class="aba-bca"
+        data-aba="rotinas"
+      >
+        Rotinas
+      </button>
+    </nav>
+
+    
+<section
+  id="conteudoClientesBCA"
+  class="conteudo-aba-bca"
+>
+  <div class="painel">
+
+    <div class="cabecalho-clientes-bca">
+      <div>
+        <h2>Clientes</h2>
+        <p>
+          Cadastro e gerenciamento dos clientes
+          da contabilidade.
+        </p>
+      </div>
+
+      <button
+        type="button"
+        id="novoClienteBCA"
+        class="botao-principal-bca"
+        disabled
+      >
+        + Novo cliente
+      </button>
+    </div>
+
+    <div class="pesquisa-clientes-bca">
+      <label for="pesquisarClientesBCA">
+        Pesquisar cliente
+      </label>
+
+      <input
+        type="search"
+        id="pesquisarClientesBCA"
+        placeholder="Nome, CPF ou CNPJ"
+        autocomplete="off"
+        disabled
+      >
+    </div>
+
+    <div
+      id="mensagemClientesBCA"
+      role="status"
+      aria-live="polite"
+    ></div>
+
+    <div class="tabela-clientes-bca">
+      <table>
+        <thead>
+          <tr>
+            <th>Nome / Razão social</th>
+            <th>CPF / CNPJ</th>
+            <th>Contato</th>
+            <th>Cliente fixo</th>
+            <th>Situação</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+
+        <tbody id="listaClientesBCA"></tbody>
+      </table>
+    </div>
+
+  </div>
+</section>
+
+<!-- CADASTRO E EDICAO DE CLIENTES BCA -->
+<dialog id="modalClienteBCA" class="modal-cliente-bca">
+  <form id="formClienteBCA">
+
+    <h2 id="tituloModalClienteBCA">
+      Novo cliente
+    </h2>
+
+    <input type="hidden" name="id">
+
+    <div class="campo-cliente-bca">
+      <label for="nomeClienteBCA">
+        Nome / Razão social *
+      </label>
+
+      <input
+        id="nomeClienteBCA"
+        name="nome"
+        type="text"
+        maxlength="200"
+        required
+      >
+    </div>
+
+    <div class="campo-cliente-bca">
+      <label for="documentoClienteBCA">
+        CPF ou CNPJ *
+      </label>
+
+      <input
+        id="documentoClienteBCA"
+        name="cpf_cnpj"
+        type="text"
+        inputmode="numeric"
+        maxlength="18"
+        placeholder="Informe o CPF ou CNPJ"
+        required
+      >
+    </div>
+
+    <div class="campo-cliente-bca">
+      <label for="contatoClienteBCA">
+        Contato
+      </label>
+
+      <input
+        id="contatoClienteBCA"
+        name="contato"
+        type="tel"
+        maxlength="30"
+        placeholder="Telefone ou WhatsApp"
+      >
+    </div>
+
+    <div class="opcoes-cliente-bca">
+      <label>
+        <input
+          type="checkbox"
+          name="cliente_fixo"
+        >
+        Cliente fixo
+      </label>
+
+      <label>
+        <input
+          type="checkbox"
+          name="ativo"
+          checked
+        >
+        Cliente ativo
+      </label>
+    </div>
+
+    <div class="acoes-cliente-bca">
+      <button
+        type="button"
+        id="cancelarClienteBCA"
+      >
+        Cancelar
+      </button>
+
+      <button
+        type="submit"
+        id="salvarClienteBCA"
+        class="botao-principal-bca"
+      >
+        Salvar cliente
+      </button>
+    </div>
+
+  </form>
+</dialog>
+
+
+    <section
+      id="conteudoTarefasBCA"
+      class="conteudo-aba-bca"
+      hidden
+    >
+      <div class="painel">
+        <h2>Tarefas</h2>
+        <p>
+          Controle e acompanhamento das atividades
+          contábeis.
+        </p>
+      </div>
+    </section>
+
+    <section
+      id="conteudoRotinasBCA"
+      class="conteudo-aba-bca"
+      hidden
+    >
+      <div class="painel">
+        <h2>Rotinas</h2>
+        <p>
+          Acompanhamento das obrigações recorrentes
+          dos clientes fixos.
+        </p>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  
+<script src="./js/sessao.js" defer></script>
+<script src="./js/bca.js" defer></script>
+<script src="./js/clientes-bca.js" defer></script>
+
+</body>
+</html>
