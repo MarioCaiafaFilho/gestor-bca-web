@@ -19,6 +19,13 @@ let acessoAutorizado = false;
 let responsaveis = [];
 let tiposAtividade = [];
 
+const pesquisaPrazos = document.getElementById(
+  "pesquisarPrazosBonavere"
+);
+
+let processosEmMemoria = [];
+
+
 const tabelaAbertos =
   document.getElementById("processosAbertos");
 
@@ -1041,12 +1048,58 @@ function ordenarAbertos(a, b) {
 // SEPARAR PROCESSOS ABERTOS E FECHADOS
 // ==========================================
 
+function filtrarProcessosBonavere(processos) {
+  if (!pesquisaPrazos) return processos;
+
+  function normalizar(texto) {
+    return String(texto ?? "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLocaleLowerCase("pt-BR")
+      .trim();
+  }
+
+  const termo = normalizar(pesquisaPrazos.value);
+
+  if (!termo) return processos;
+
+  const termoSemPontuacao = termo.replace(
+    /[^a-z0-9]/g,
+    ""
+  );
+
+  return processos.filter(processo => {
+    const nomeCliente = normalizar(processo.cliente);
+    const numeroProcesso = normalizar(
+      processo.numero_processo
+    );
+
+    const numeroSemPontuacao = numeroProcesso.replace(
+      /[^a-z0-9]/g,
+      ""
+    );
+
+    return (
+      nomeCliente.includes(termo) ||
+      numeroProcesso.includes(termo) ||
+      (
+        termoSemPontuacao.length > 0 &&
+        numeroSemPontuacao.includes(termoSemPontuacao)
+      )
+    );
+  });
+}
+
 function mostrarProcessos(processos) {
-  const abertos = processos
+
+const processosFiltrados = filtrarProcessosBonavere(processos);
+
+const abertos = processosFiltrados
     .filter(processo => !encerrado(processo))
     .sort(ordenarAbertos);
 
-  const fechados = processos
+
+const fechados = processosFiltrados
     .filter(encerrado)
     .sort((a, b) =>
       b.atualizado_em.localeCompare(
@@ -1088,6 +1141,14 @@ function mostrarProcessos(processos) {
 
   totalFechados.textContent =
     `${fechados.length} registro(s)`;
+}
+
+if (pesquisaPrazos) {
+  pesquisaPrazos.addEventListener("input", () => {
+    if (!acessoAutorizado) return;
+
+    mostrarProcessos(processosEmMemoria);
+  });
 }
 
 // ==========================================
@@ -1247,7 +1308,10 @@ async function carregarProcessos() {
     return;
   }
 
-  mostrarProcessos(data || []);
+
+processosEmMemoria = data || [];
+
+mostrarProcessos(processosEmMemoria);
 }
 
 // ==========================================

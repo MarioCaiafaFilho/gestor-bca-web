@@ -424,31 +424,15 @@ if (campo === "cliente") {
         }
 
         // Validar novo nome ao editar Cliente.
-       
-if (campo === "cliente") {
-  const opcoes = Array.from(listaSugestoes.options);
-
-  const clienteEncontrado = opcoes.find(opcao =>
-    opcao.value.localeCompare(
-      novoValor,
-      "pt-BR",
-      { sensitivity: "base" }
-    ) === 0
-  );
-
-  if (!clienteEncontrado) {
-    cancelar();
-
-    alert(
-      "Cliente não encontrado. Selecione um cliente cadastrado e ativo."
-    );
-
-    return;
-  }
-
-  novoValor = clienteEncontrado.value;
-}
-
+        if (campo === "cliente") {
+          try {
+            novoValor = validarClienteAudiencia(novoValor);
+          } catch (erro) {
+            cancelar();
+            alert(erro.message);
+            return;
+          }
+        }
 
         encerrado = true;
         entrada.disabled = true;
@@ -803,44 +787,17 @@ if (campo === "cliente") {
     () => modal.close()
   );
 
- 
   function obterDadosAudiencia() {
     const dados = new FormData(formulario);
-
-    // Validar o cliente diretamente, sem depender
-    // de outra função que possa estar ausente.
-    const nomeDigitado = String(
-      dados.get("cliente") ?? ""
-    ).trim();
-
-    if (!nomeDigitado) {
-      throw new Error(
-        "Selecione um cliente cadastrado."
-      );
-    }
-
-    const clienteEncontrado = Array.from(
-      listaSugestoes.options
-    ).find(opcao =>
-      opcao.value.localeCompare(
-        nomeDigitado,
-        "pt-BR",
-        { sensitivity: "base" }
-      ) === 0
-    );
-
-    if (!clienteEncontrado) {
-      throw new Error(
-        "Cliente não encontrado. Selecione um cliente cadastrado e ativo."
-      );
-    }
 
     return {
       numero_processo: valorOuNulo(
         dados.get("numero_processo")
       ),
 
-      cliente: clienteEncontrado.value,
+      cliente: validarClienteAudiencia(
+        dados.get("cliente")
+      ),
 
       tribunal: valorOuNulo(
         dados.get("tribunal")

@@ -74,9 +74,27 @@
 <!-- FIM DA NAVEGACAO -->
 
 <!-- CONTEUDO DA ABA PRAZOS -->
+<
+<!-- CONTEUDO DA ABA PRAZOS -->
 <div id="conteudoPrazos" class="conteudo-aba">
 
-    <section class="painel">
+  <!-- PESQUISA DE PROCESSOS E CLIENTES -->
+  <div class="pesquisa-prazos-bonavere">
+    <label for="pesquisarPrazosBonavere">
+      Pesquisar cliente ou processo
+    </label>
+
+    <input
+      type="search"
+      id="pesquisarPrazosBonavere"
+      placeholder="Digite o nome do cliente ou número do processo"
+      autocomplete="off"
+      aria-label="Pesquisar cliente ou processo nos Prazos"
+    >
+  </div>
+
+  <section class="painel">
+
       <div class="titulo-secao">
         <h2>Processos em aberto</h2>
         <span id="totalAbertos"

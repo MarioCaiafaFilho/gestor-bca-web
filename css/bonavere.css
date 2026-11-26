@@ -1262,3 +1262,56 @@ table td:nth-child(7) {
     min-width: 850px;
   }
 }
+
+/* ==========================================
+   BONAVERE - PESQUISA DE PRAZOS
+   ========================================== */
+
+#conteudoPrazos .pesquisa-prazos-bonavere {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 18px 24px;
+  margin-bottom: 20px;
+  background: #ffffff;
+  border: 1px solid #dce5ef;
+  border-radius: 12px;
+}
+
+#conteudoPrazos .pesquisa-prazos-bonavere label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #173b65;
+}
+
+#pesquisarPrazosBonavere {
+  width: 100%;
+  max-width: 520px;
+  padding: 12px 15px;
+  border: 1px solid #cbd9e8;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #243447;
+  font: inherit;
+  font-size: 14px;
+  outline: none;
+}
+
+#pesquisarPrazosBonavere:focus {
+  border-color: #376fa9;
+  box-shadow: 0 0 0 3px rgba(55, 111, 169, 0.12);
+}
+
+#pesquisarPrazosBonavere::placeholder {
+  color: #8190a0;
+}
+
+@media (max-width: 600px) {
+  #conteudoPrazos .pesquisa-prazos-bonavere {
+    padding: 15px;
+  }
+
+  #pesquisarPrazosBonavere {
+    max-width: 100%;
+  }
+}
